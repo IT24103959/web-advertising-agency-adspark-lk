@@ -13,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "payments")
@@ -51,7 +52,7 @@ public class Payment {
     private String invoiceNumber;
 
     @Column(name = "due_date")
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
 
     @Column(name = "paid_date")
     private LocalDateTime paidDate;
@@ -82,6 +83,6 @@ public class Payment {
     }
 
     public boolean isOverdue() {
-        return dueDate != null && dueDate.isBefore(LocalDateTime.now()) && !isPaid();
+        return dueDate != null && dueDate.isBefore(LocalDate.now()) && !isPaid();
     }
 }
