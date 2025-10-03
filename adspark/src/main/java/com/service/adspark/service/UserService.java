@@ -239,4 +239,40 @@ public class UserService {
 
         return response;
     }
+    /**
+     * Find user by username
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> findByUsername(String username) {
+        log.debug("Finding user by username: {}", username);
+
+        // Check internal users first
+        Optional<InternalUser> internalUser = internalUserRepository.findByUsername(username);
+        if (internalUser.isPresent()) {
+            return Optional.of(internalUser.get());
+        }
+
+        // Check external users
+        Optional<ExternalUser> externalUser = externalUserRepository.findByUsername(username);
+        return externalUser.map(user -> (User) user);
+    }
+
+
+    /**
+     * Find user by ID
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> findById(Long id) {
+        log.debug("Finding user by ID: {}", id);
+
+        // Check internal users first
+        Optional<InternalUser> internalUser = internalUserRepository.findById(id);
+        if (internalUser.isPresent()) {
+            return Optional.of(internalUser.get());
+        }
+
+        // Check external users
+        Optional<ExternalUser> externalUser = externalUserRepository.findById(id);
+        return externalUser.map(user -> (User) user);
+    }
 }

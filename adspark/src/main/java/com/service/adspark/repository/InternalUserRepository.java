@@ -24,6 +24,7 @@ public interface InternalUserRepository extends JpaRepository<InternalUser, Long
     Optional<InternalUser> findByUsernameAndPassword(@Param("username") String username,
                                                      @Param("password") String password);
 
+
     List<InternalUser> findByRole(UserRole role);
 
     List<InternalUser> findByStatus(UserStatus status);
@@ -38,4 +39,6 @@ public interface InternalUserRepository extends JpaRepository<InternalUser, Long
 
     @Query("SELECT COUNT(u) FROM InternalUser u WHERE u.role = :role")
     long countByRole(@Param("role") UserRole role);
+
+
 }

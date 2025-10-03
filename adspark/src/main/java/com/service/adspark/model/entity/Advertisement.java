@@ -13,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,6 +34,16 @@ public class Advertisement {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @NotBlank(message = "Client name is required")
+    @Column(name = "client_name", nullable = false)
+    private String clientName;
+
+    @Column(name = "client_email")
+    private String clientEmail;
+
+    @Column(name = "client_phone")
+    private String clientPhone;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Ad format is required")
@@ -62,6 +73,9 @@ public class Advertisement {
     @Column(name = "target_audience", columnDefinition = "TEXT")
     private String targetAudience;
 
+    @Column(name = "campaign_objectives", columnDefinition = "TEXT")
+    private String campaignObjectives;
+
     @Column(name = "campaign_name")
     private String campaignName;
 
@@ -70,10 +84,28 @@ public class Advertisement {
     private BigDecimal budget;
 
     @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
+
+    @Column(name = "duration_days")
+    private Integer durationDays;
+
+    @Column(columnDefinition = "TEXT")
+    private String tags;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
+    @Column(name = "priority_level")
+    private Integer priorityLevel = 3; // 1=High, 2=Medium, 3=Low, 4=Urgent, 5=Critical
+
+    @Column(name = "estimated_hours")
+    private Integer estimatedHours;
+
+    @Column(name = "actual_hours")
+    private Integer actualHours;
 
     @Column(columnDefinition = "TEXT")
     private String keywords;
@@ -94,8 +126,16 @@ public class Advertisement {
 
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "created_by_user_id", nullable = false)
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to_user_id")
+    private User assignedTo;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "advertisement_assets", joinColumns = @JoinColumn(name = "advertisement_id"), inverseJoinColumns = @JoinColumn(name = "asset_id"))
+    private List<Asset> assets;
 
     @OneToMany(mappedBy = "advertisement", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AdPerformance> performances;
@@ -109,10 +149,38 @@ public class Advertisement {
     }
 
     public boolean isScheduled() {
-        return startDate != null && startDate.isAfter(LocalDateTime.now());
+        return startDate != null && startDate.isAfter(LocalDate.now());
     }
 
     public boolean isExpired() {
-        return endDate != null && endDate.isBefore(LocalDateTime.now());
+        return endDate != null && endDate.isBefore(LocalDate.now());
+    }
+
+    public boolean isCompleted() {
+        return status == AdStatus.COMPLETED || status == AdStatus.ARCHIVED;
+    }
+
+    public boolean canBeEdited() {
+        return status == AdStatus.DRAFT || status == AdStatus.PENDING_APPROVAL || status == AdStatus.REJECTED;
+    }
+
+    public void updateStatus(AdStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public BigDecimal getBudgetOrDefault() {
+        return budget != null ? budget : BigDecimal.ZERO;
+    }
+
+    public String getPriorityLevelDisplay() {
+        int level = priorityLevel != null ? priorityLevel : 3;
+        return switch (level) {
+            case 1 -> "High";
+            case 2 -> "Medium";
+            case 3 -> "Low";
+            case 4 -> "Urgent";
+            case 5 -> "Critical";
+            default -> "Unknown";
+        };
     }
 }
