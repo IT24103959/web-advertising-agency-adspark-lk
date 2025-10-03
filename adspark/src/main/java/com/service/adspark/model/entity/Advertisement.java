@@ -138,7 +138,7 @@ public class Advertisement {
     private List<Asset> assets;
 
     @OneToMany(mappedBy = "advertisement", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<AdPerformance> performances;
+    private List<AnalyticsEvent> analyticsEvents;
 
     @OneToMany(mappedBy = "advertisement", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Payment> payments;

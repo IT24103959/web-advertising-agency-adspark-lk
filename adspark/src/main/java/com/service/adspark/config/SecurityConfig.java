@@ -39,6 +39,9 @@ public class SecurityConfig {
                                 "/api/users/health", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-ui.html")
                         .permitAll()
+                        // Analytics tracking can be public for external websites
+                        .requestMatchers("/api/analytics/track-event")
+                        .permitAll()
                         // Protected endpoints (require authentication)
                         .requestMatchers("/api/users/me").authenticated()
                         // All other endpoints require authentication
