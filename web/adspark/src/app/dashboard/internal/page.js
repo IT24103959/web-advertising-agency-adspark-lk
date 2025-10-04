@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../context/AuthContext';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function InternalDashboard() {
   const { user, isLoggedIn, loading, logout } = useAuth();
@@ -11,7 +12,7 @@ export default function InternalDashboard() {
   useEffect(() => {
     if (!loading) {
       if (!isLoggedIn) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
@@ -19,9 +20,9 @@ export default function InternalDashboard() {
       if (!user?.internalUser) {
         // If not internal user, redirect to appropriate dashboard
         if (user?.client) {
-          router.push('/dashboard/client');
+          router.push("/dashboard/client");
         } else {
-          router.push('/login');
+          router.push("/login");
         }
       }
     }
@@ -29,7 +30,7 @@ export default function InternalDashboard() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push("/login");
   };
 
   if (loading) {
@@ -49,23 +50,23 @@ export default function InternalDashboard() {
 
   const getRoleDisplayName = (role) => {
     const roleMap = {
-      'SYSTEM_ADMINISTRATOR': 'System Administrator',
-      'MARKETING_MANAGER': 'Marketing Manager',
-      'GRAPHIC_DESIGNER': 'Graphic Designer',
-      'IT_SUPPORT': 'IT Support',
-      'CUSTOMER_SUPPORT': 'Customer Support',
-      'FINANCE_TEAM': 'Finance Team',
+      SYSTEM_ADMINISTRATOR: "System Administrator",
+      MARKETING_MANAGER: "Marketing Manager",
+      GRAPHIC_DESIGNER: "Graphic Designer",
+      IT_SUPPORT: "IT Support",
+      CUSTOMER_SUPPORT: "Customer Support",
+      FINANCE_TEAM: "Finance Team",
     };
     return roleMap[role] || role;
   };
 
   const getAccessLevelText = (level) => {
     const levels = {
-      1: 'Basic Access',
-      2: 'Standard Access',
-      3: 'Advanced Access',
-      4: 'Manager Access',
-      5: 'Administrator Access',
+      1: "Basic Access",
+      2: "Standard Access",
+      3: "Advanced Access",
+      4: "Manager Access",
+      5: "Administrator Access",
     };
     return levels[level] || `Level ${level}`;
   };
@@ -107,7 +108,8 @@ export default function InternalDashboard() {
                 Welcome back, {user.firstName} {user.lastName}!
               </h2>
               <p className="text-gray-600">
-                AdSpark Employee Dashboard - Manage your advertising campaigns and tasks
+                AdSpark Employee Dashboard - Manage your advertising campaigns
+                and tasks
               </p>
             </div>
           </div>
@@ -117,13 +119,26 @@ export default function InternalDashboard() {
             {/* Profile Card */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Profile Information
+                </h3>
                 <div className="space-y-2 text-sm">
-                  <div><strong>Role:</strong> {getRoleDisplayName(user.role)}</div>
-                  <div><strong>Employee ID:</strong> {user.employeeId}</div>
-                  <div><strong>Department:</strong> {user.department}</div>
-                  <div><strong>Office:</strong> {user.officeLocation}</div>
-                  <div><strong>Access Level:</strong> {getAccessLevelText(user.accessLevel)}</div>
+                  <div>
+                    <strong>Role:</strong> {getRoleDisplayName(user.role)}
+                  </div>
+                  <div>
+                    <strong>Employee ID:</strong> {user.employeeId}
+                  </div>
+                  <div>
+                    <strong>Department:</strong> {user.department}
+                  </div>
+                  <div>
+                    <strong>Office:</strong> {user.officeLocation}
+                  </div>
+                  <div>
+                    <strong>Access Level:</strong>{" "}
+                    {getAccessLevelText(user.accessLevel)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -131,12 +146,21 @@ export default function InternalDashboard() {
             {/* Contact Card */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Contact Information
+                </h3>
                 <div className="space-y-2 text-sm">
-                  <div><strong>Email:</strong> {user.email}</div>
-                  <div><strong>Phone:</strong> {user.phoneNumber}</div>
-                  <div><strong>Username:</strong> {user.username}</div>
-                  <div><strong>Status:</strong> 
+                  <div>
+                    <strong>Email:</strong> {user.email}
+                  </div>
+                  <div>
+                    <strong>Phone:</strong> {user.phoneNumber}
+                  </div>
+                  <div>
+                    <strong>Username:</strong> {user.username}
+                  </div>
+                  <div>
+                    <strong>Status:</strong>
                     <span className="ml-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
                       {user.status}
                     </span>
@@ -148,12 +172,24 @@ export default function InternalDashboard() {
             {/* Account Card */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Account Details</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Account Details
+                </h3>
                 <div className="space-y-2 text-sm">
-                  <div><strong>Account ID:</strong> {user.id}</div>
-                  <div><strong>Created:</strong> {new Date(user.createdAt).toLocaleDateString()}</div>
-                  <div><strong>Last Login:</strong> {new Date(user.lastLogin).toLocaleDateString()}</div>
-                  <div><strong>Account Type:</strong> Internal Employee</div>
+                  <div>
+                    <strong>Account ID:</strong> {user.id}
+                  </div>
+                  <div>
+                    <strong>Created:</strong>{" "}
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                  <div>
+                    <strong>Last Login:</strong>{" "}
+                    {new Date(user.lastLogin).toLocaleDateString()}
+                  </div>
+                  <div>
+                    <strong>Account Type:</strong> Internal Employee
+                  </div>
                 </div>
               </div>
             </div>
@@ -162,83 +198,179 @@ export default function InternalDashboard() {
           {/* Role-Based Quick Actions */}
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Quick Actions
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {user.role === 'GRAPHIC_DESIGNER' && (
+                {user.role === "GRAPHIC_DESIGNER" && (
                   <>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">Asset Library</div>
-                      <div className="text-sm text-gray-600">Manage design assets</div>
-                    </button>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">Create Ad</div>
-                      <div className="text-sm text-gray-600">Design new advertisement</div>
-                    </button>
+                    <Link
+                      href="/assets"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Asset Library
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Browse and manage design assets
+                      </div>
+                    </Link>
+                    <Link
+                      href="/assets/create"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Create Asset
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Upload new design assets
+                      </div>
+                    </Link>
+                    <Link
+                      href="/advertisements"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Advertisements
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        View and manage campaigns
+                      </div>
+                    </Link>
+                    <Link
+                      href="/advertisements/create"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Create Advertisement
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Create new ad campaigns
+                      </div>
+                    </Link>
                   </>
                 )}
-                
-                {user.role === 'MARKETING_MANAGER' && (
+
+                {user.role === "MARKETING_MANAGER" && (
                   <>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                       <div className="font-medium text-gray-900">Analytics</div>
-                      <div className="text-sm text-gray-600">View performance reports</div>
+                      <div className="text-sm text-gray-600">
+                        View performance reports
+                      </div>
                     </button>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                       <div className="font-medium text-gray-900">Campaigns</div>
-                      <div className="text-sm text-gray-600">Manage ad campaigns</div>
+                      <div className="text-sm text-gray-600">
+                        Manage ad campaigns
+                      </div>
                     </button>
                   </>
                 )}
-                
-                {user.role === 'CUSTOMER_SUPPORT' && (
+
+                {user.role === "CUSTOMER_SUPPORT" && (
                   <>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">Support Tickets</div>
-                      <div className="text-sm text-gray-600">Handle client issues</div>
+                      <div className="font-medium text-gray-900">
+                        Support Tickets
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Handle client issues
+                      </div>
                     </button>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                       <div className="font-medium text-gray-900">Live Chat</div>
-                      <div className="text-sm text-gray-600">Client support chat</div>
+                      <div className="text-sm text-gray-600">
+                        Client support chat
+                      </div>
                     </button>
                   </>
                 )}
-                
-                {user.role === 'FINANCE_TEAM' && (
+
+                {user.role === "FINANCE_TEAM" && (
                   <>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                       <div className="font-medium text-gray-900">Billing</div>
-                      <div className="text-sm text-gray-600">Manage invoices</div>
+                      <div className="text-sm text-gray-600">
+                        Manage invoices
+                      </div>
                     </button>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                       <div className="font-medium text-gray-900">Payments</div>
-                      <div className="text-sm text-gray-600">Track payments</div>
+                      <div className="text-sm text-gray-600">
+                        Track payments
+                      </div>
                     </button>
                   </>
                 )}
-                
-                {user.role === 'SYSTEM_ADMINISTRATOR' && (
+
+                {user.role === "SYSTEM_ADMINISTRATOR" && (
                   <>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">User Management</div>
-                      <div className="text-sm text-gray-600">Manage system users</div>
+                      <div className="font-medium text-gray-900">
+                        User Management
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Manage system users
+                      </div>
                     </button>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">System Settings</div>
-                      <div className="text-sm text-gray-600">Configure system</div>
+                      <div className="font-medium text-gray-900">
+                        System Settings
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Configure system
+                      </div>
                     </button>
                   </>
                 )}
-                
-                {user.role === 'IT_SUPPORT' && (
+
+                {user.role === "IT_SUPPORT" && (
                   <>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">System Monitor</div>
-                      <div className="text-sm text-gray-600">Monitor system health</div>
+                      <div className="font-medium text-gray-900">
+                        System Monitor
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Monitor system health
+                      </div>
                     </button>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">Support Tickets</div>
-                      <div className="text-sm text-gray-600">Technical support</div>
+                      <div className="font-medium text-gray-900">
+                        Support Tickets
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Technical support
+                      </div>
                     </button>
+                  </>
+                )}
+
+                {/* Asset Library and Advertisement access for non-GRAPHIC_DESIGNER internal users */}
+                {user.role !== "GRAPHIC_DESIGNER" && (
+                  <>
+                    <Link
+                      href="/assets"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Asset Library
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Browse design assets and templates
+                      </div>
+                    </Link>
+                    <Link
+                      href="/advertisements"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Advertisements
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        View advertising campaigns
+                      </div>
+                    </Link>
                   </>
                 )}
               </div>

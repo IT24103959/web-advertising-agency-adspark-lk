@@ -32,6 +32,12 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, Lo
     // Find by assigned user
     List<Advertisement> findByAssignedTo(User assignedTo);
 
+    // Find by created by or assigned to
+    List<Advertisement> findByCreatedByOrAssignedTo(User createdBy, User assignedTo);
+
+    // Find by client email or client name containing
+    List<Advertisement> findByClientEmailOrClientNameContainingIgnoreCase(String clientEmail, String clientName);
+
     // Find by budget range
     List<Advertisement> findByBudgetBetween(BigDecimal minBudget, BigDecimal maxBudget);
 

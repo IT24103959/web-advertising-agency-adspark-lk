@@ -1,6 +1,7 @@
 package com.service.adspark.controller;
 
 import com.service.adspark.dto.response.advertisementmanagement.AdvertisementResponse;
+import com.service.adspark.dto.response.advertisementmanagement.AdvertisementSummaryResponse;
 import com.service.adspark.dto.request.advertisementmanagement.CreateAdvertisementRequest;
 import com.service.adspark.service.AdvertisementService;
 import jakarta.validation.Valid;
@@ -10,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/adverts")
@@ -97,6 +101,33 @@ public class AdvertisementController {
             log.error("Unexpected error deleting advert", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An unexpected error occurred while deleting the advert");
+        }
+    }
+
+    @GetMapping("/my-summary")
+    public ResponseEntity<?> getMyAdvertisementSummaries(Authentication authentication) {
+        try {
+            log.info("Request to get advertisement summaries for user: {}", authentication.getName());
+
+            List<AdvertisementSummaryResponse> summaries = advertService
+                    .getUserAdvertisementSummaries(authentication.getName());
+
+            log.info("Found {} advertisement summaries for user: {}", summaries.size(), authentication.getName());
+            return ResponseEntity.ok(summaries);
+
+        } catch (RuntimeException e) {
+            log.error("Error getting advertisement summaries: {}", e.getMessage());
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            } else if (e.getMessage().contains("Access denied")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: " + e.getMessage());
+            } else {
+                return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error getting advertisement summaries", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred while getting advertisement summaries");
         }
     }
 }

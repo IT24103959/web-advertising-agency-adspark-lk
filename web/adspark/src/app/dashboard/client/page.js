@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
 
 export default function ClientDashboard() {
@@ -230,19 +231,27 @@ export default function ClientDashboard() {
                   </div>
                 </button>
 
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                  <div className="font-medium text-gray-900">My Campaigns</div>
-                  <div className="text-sm text-gray-600">
-                    View all active campaigns
+                <Link
+                  href="/advertisements"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
+                  <div className="font-medium text-gray-900">
+                    My Advertisements
                   </div>
-                </button>
+                  <div className="text-sm text-gray-600">
+                    View all your advertising campaigns
+                  </div>
+                </Link>
 
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <Link
+                  href="/assets"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
                   <div className="font-medium text-gray-900">Asset Library</div>
                   <div className="text-sm text-gray-600">
-                    Manage marketing assets
+                    Browse marketing assets and templates
                   </div>
-                </button>
+                </Link>
 
                 <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                   <div className="font-medium text-gray-900">

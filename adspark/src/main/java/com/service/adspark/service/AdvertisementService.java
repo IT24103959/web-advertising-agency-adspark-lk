@@ -1,21 +1,27 @@
 package com.service.adspark.service;
 
 import com.service.adspark.dto.response.advertisementmanagement.AdvertisementResponse;
+import com.service.adspark.dto.response.advertisementmanagement.AdvertisementSummaryResponse;
 import com.service.adspark.dto.response.assetmanagement.AssetResponse;
 import com.service.adspark.dto.request.advertisementmanagement.CreateAdvertisementRequest;
+import com.service.adspark.model.entity.Payment;
 import com.service.adspark.model.entity.Advertisement;
 import com.service.adspark.model.entity.Asset;
 import com.service.adspark.model.entity.User;
 import com.service.adspark.model.enums.AdStatus;
 import com.service.adspark.model.enums.UserRole;
+import com.service.adspark.model.enums.EventType;
+import com.service.adspark.model.enums.PaymentStatus;
+
 import com.service.adspark.repository.AdvertisementRepository;
 import com.service.adspark.repository.AssetRepository;
+import com.service.adspark.repository.AnalyticsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +35,7 @@ public class AdvertisementService {
 
     private final AdvertisementRepository advertRepository;
     private final AssetRepository assetRepository;
+    private final AnalyticsRepository analyticsRepository;
     private final UserService userService;
 
     /**
@@ -277,5 +284,122 @@ public class AdvertisementService {
         response.setFileType(asset.getFileType());
         response.setCreatedAt(asset.getCreatedAt());
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdvertisementSummaryResponse> getUserAdvertisementSummaries(String username) {
+        log.info("Getting advertisement summaries for user: {}", username);
+
+        User user = getUserByUsername(username);
+        List<Advertisement> advertisements;
+
+        // Get advertisements based on user role
+        if (user.getRole() == UserRole.CLIENT) {
+            // External users see adverts where they are the client
+            advertisements = advertRepository.findByClientEmailOrClientNameContainingIgnoreCase(user.getEmail(),
+                    user.getFullName());
+        } else {
+            // Internal users see adverts they created or are assigned to
+            advertisements = advertRepository.findByCreatedByOrAssignedTo(user, user);
+        }
+
+        log.info("Found {} advertisements for user: {}", advertisements.size(), username);
+
+        return advertisements.stream()
+                .map(this::mapToAdvertisementSummary)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Map Advertisement entity to AdvertisementSummaryResponse DTO
+     */
+    private AdvertisementSummaryResponse mapToAdvertisementSummary(Advertisement ad) {
+        AdvertisementSummaryResponse summary = new AdvertisementSummaryResponse();
+
+        // Basic advertisement information
+        summary.setId(ad.getId());
+        summary.setTitle(ad.getTitle());
+        summary.setDescription(ad.getDescription());
+        summary.setClientName(ad.getClientName());
+        summary.setFormat(ad.getFormat());
+        summary.setStatus(ad.getStatus());
+        summary.setCampaignName(ad.getCampaignName());
+        summary.setBudget(ad.getBudgetOrDefault());
+        summary.setStartDate(ad.getStartDate());
+        summary.setEndDate(ad.getEndDate());
+        summary.setDurationDays(ad.getDurationDays());
+        summary.setPriorityLevelDisplay(ad.getPriorityLevelDisplay());
+        summary.setIsPublished(ad.getIsPublished());
+        summary.setCreatedAt(ad.getCreatedAt());
+        summary.setUpdatedAt(ad.getUpdatedAt());
+
+        // User information
+        if (ad.getCreatedBy() != null) {
+            summary.setCreatedByUsername(ad.getCreatedBy().getUsername());
+        }
+        if (ad.getAssignedTo() != null) {
+            summary.setAssignedToUsername(ad.getAssignedTo().getUsername());
+        }
+
+        // Status indicators
+        summary.setIsActive(ad.isActive());
+        summary.setIsScheduled(ad.isScheduled());
+        summary.setIsExpired(ad.isExpired());
+        summary.setCanBeEdited(ad.canBeEdited());
+
+        // File information
+        summary.setFileUrl(ad.getFileUrl());
+        summary.setThumbnailUrl(ad.getThumbnailUrl());
+
+        // Asset count
+        if (ad.getAssets() != null) {
+            summary.setTotalAssets(ad.getAssets().size());
+        }
+
+        // Analytics metrics (with error handling)
+        try {
+            Long clicks = analyticsRepository.countByAdvertisementIdAndEventType(ad.getId(), EventType.CLICK);
+            Long views = analyticsRepository.countByAdvertisementIdAndEventType(ad.getId(), EventType.VIEW);
+            Long impressions = analyticsRepository.countByAdvertisementIdAndEventType(ad.getId(), EventType.IMPRESSION);
+
+            summary.setTotalClicks(clicks);
+            summary.setTotalViews(views);
+            summary.setTotalImpressions(impressions);
+
+            // Calculate rates
+            if (impressions > 0) {
+                summary.setClickThroughRate(
+                        Math.round((clicks.doubleValue() / impressions.doubleValue()) * 10000.0) / 100.0);
+                summary.setViewRate(Math.round((views.doubleValue() / impressions.doubleValue()) * 10000.0) / 100.0);
+            }
+        } catch (Exception e) {
+            log.warn("Could not load analytics for advertisement {}: {}", ad.getId(), e.getMessage());
+            // Keep default values (0)
+        }
+
+        // Payment information (with error handling)
+        try {
+            if (ad.getPayments() != null) {
+                summary.setTotalPayments((long) ad.getPayments().size());
+
+                BigDecimal totalPaid = ad.getPayments().stream()
+                        .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
+                        .map(Payment::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                BigDecimal totalPending = ad.getPayments().stream()
+                        .filter(payment -> payment.getStatus() == PaymentStatus.PENDING)
+                        .map(Payment::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                summary.setTotalPaidAmount(totalPaid);
+                summary.setPendingAmount(totalPending);
+            }
+        } catch (Exception e) {
+            log.warn("Could not load payment information for advertisement {}: {}", ad.getId(), e.getMessage());
+            // Keep default values
+        }
+
+        return summary;
     }
 }
