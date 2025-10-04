@@ -310,6 +310,22 @@ public class AdvertisementService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<AdvertisementResponse> getPublicAdvertisements() {
+        log.info("Getting all public advertisements");
+
+        // Get advertisements that are available for public viewing
+        List<Advertisement> publicAdvertisements = advertRepository.findByStatusIn(
+                List.of(AdStatus.ACTIVE, AdStatus.APPROVED));
+
+        log.info("Found {} public advertisements", publicAdvertisements.size());
+
+        return publicAdvertisements.stream()
+                .map(this::mapToAdvertResponse)
+                .collect(Collectors.toList());
+    }
+
+
     /**
      * Map Advertisement entity to AdvertisementSummaryResponse DTO
      */

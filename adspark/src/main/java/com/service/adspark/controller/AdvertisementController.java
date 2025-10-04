@@ -130,4 +130,21 @@ public class AdvertisementController {
                     .body("An unexpected error occurred while getting advertisement summaries");
         }
     }
+    @GetMapping("/public")
+    public ResponseEntity<?> getPublicAdvertisements() {
+        try {
+            log.info("Request to get all public advertisements");
+
+            List<AdvertisementResponse> advertisements = advertService.getPublicAdvertisements();
+
+            log.info("Found {} public advertisements", advertisements.size());
+            return ResponseEntity.ok(advertisements);
+
+        } catch (Exception e) {
+            log.error("Unexpected error getting public advertisements", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred while getting public advertisements");
+        }
+    }
+
 }

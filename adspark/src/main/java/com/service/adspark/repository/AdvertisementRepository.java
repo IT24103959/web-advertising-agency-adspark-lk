@@ -23,6 +23,9 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, Lo
     // Find by status
     List<Advertisement> findByStatus(AdStatus status);
 
+    // Find by multiple statuses
+    List<Advertisement> findByStatusIn(List<AdStatus> statuses);
+
     // Find by client name (case insensitive)
     List<Advertisement> findByClientNameContainingIgnoreCase(String clientName);
 

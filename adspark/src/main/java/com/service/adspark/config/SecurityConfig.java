@@ -42,6 +42,8 @@ public class SecurityConfig {
                         // Analytics tracking can be public for external websites
                         .requestMatchers("/api/analytics/track-event")
                         .permitAll()
+                        .requestMatchers("/api/adverts/public")
+                        .permitAll()
                         // Protected endpoints (require authentication)
                         .requestMatchers("/api/users/me").authenticated()
                         // All other endpoints require authentication
