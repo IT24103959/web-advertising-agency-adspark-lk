@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
+import AnalyticsService, {
+  formatNumber,
+  formatPercentage,
+} from "../../../services/analyticsService";
+import { MetricsCard } from "../../../components/AnalyticsComponents";
 
 export default function ClientDashboard() {
   const { user, isLoggedIn, loading, logout } = useAuth();
   const router = useRouter();
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading) {
@@ -27,6 +34,27 @@ export default function ClientDashboard() {
       }
     }
   }, [isLoggedIn, user, loading, router]);
+
+  // Fetch analytics data when user is loaded
+  useEffect(() => {
+    if (isLoggedIn && user?.client) {
+      fetchAnalyticsData();
+    }
+  }, [isLoggedIn, user]);
+
+  const fetchAnalyticsData = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const result = await AnalyticsService.getDashboardSummary();
+      if (result.success) {
+        setAnalyticsData(result.data.overview);
+      }
+    } catch (error) {
+      console.error("Analytics fetch error:", error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -78,6 +106,127 @@ export default function ClientDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          {/* Analytics Overview */}
+          <div className="mb-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              Campaign Analytics
+            </h2>
+            {analyticsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-lg shadow p-6 animate-pulse"
+                  >
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : analyticsData ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <MetricsCard
+                  title="My Advertisements"
+                  value={formatNumber(analyticsData.totalAdvertisements)}
+                  icon={
+                    <svg
+                      className="h-6 w-6"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  }
+                  colorClass="bg-blue-500"
+                />
+
+                <MetricsCard
+                  title="Total Impressions"
+                  value={formatNumber(analyticsData.totalImpressions)}
+                  icon={
+                    <svg
+                      className="h-6 w-6"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  }
+                  colorClass="bg-green-500"
+                />
+
+                <MetricsCard
+                  title="Total Clicks"
+                  value={formatNumber(analyticsData.totalClicks)}
+                  icon={
+                    <svg
+                      className="h-6 w-6"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  }
+                  colorClass="bg-purple-500"
+                />
+
+                <MetricsCard
+                  title="Click-Through Rate"
+                  value={formatPercentage(analyticsData.overallCTR)}
+                  icon={
+                    <svg
+                      className="h-6 w-6"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  }
+                  colorClass="bg-yellow-500"
+                />
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No analytics data yet
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Start creating advertisements to see your performance metrics.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Welcome Section */}
           <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
             <div className="px-4 py-5 sm:p-6">
@@ -206,14 +355,17 @@ export default function ClientDashboard() {
                   </div>
                 </button>
 
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <Link
+                  href="/analytics"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
                   <div className="font-medium text-gray-900">
                     View Analytics
                   </div>
                   <div className="text-sm text-gray-600">
                     Check campaign performance
                   </div>
-                </button>
+                </Link>
 
                 <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                   <div className="font-medium text-gray-900">

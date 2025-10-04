@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthContext } from "../../context/AuthContext";
 import AdvertisementService from "../../services/advertisementService";
+import AnalyticsService from "../../services/analyticsService";
 
 export default function AdvertisementsPage() {
   const { user } = useContext(AuthContext);
@@ -274,7 +275,18 @@ export default function AdvertisementsPage() {
               );
 
               return (
-                <Link key={ad.id} href={`/advertisements/${ad.id}`}>
+                <Link
+                  key={ad.id}
+                  href={`/advertisements/${ad.id}`}
+                  onClick={() => {
+                    // Track impression when advertisement is clicked from listing
+                    AnalyticsService.trackClick(ad.id, {
+                      sessionId: AnalyticsService.getSessionId(),
+                    }).catch((error) =>
+                      console.error("Failed to track click:", error)
+                    );
+                  }}
+                >
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
                     {/* Header */}
                     <div className="p-6 pb-4">

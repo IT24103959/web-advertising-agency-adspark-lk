@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthContext } from "../../../context/AuthContext";
 import AdvertisementService from "../../../services/advertisementService";
+import AnalyticsService from "../../../services/analyticsService";
 
 export default function AdvertisementDetailPage({ params }) {
   const { user } = useContext(AuthContext);
@@ -24,8 +25,40 @@ export default function AdvertisementDetailPage({ params }) {
     }
     if (advertisementId) {
       loadAdvertisement();
+      // Track impression when ad is viewed
+      trackImpression();
     }
   }, [user, router, advertisementId]);
+
+  const trackImpression = async () => {
+    try {
+      await AnalyticsService.trackImpression(advertisementId, {
+        sessionId: AnalyticsService.getSessionId(),
+      });
+    } catch (error) {
+      console.error("Failed to track impression:", error);
+    }
+  };
+
+  const trackClick = async () => {
+    try {
+      await AnalyticsService.trackClick(advertisementId, {
+        sessionId: AnalyticsService.getSessionId(),
+      });
+    } catch (error) {
+      console.error("Failed to track click:", error);
+    }
+  };
+
+  const trackView = async () => {
+    try {
+      await AnalyticsService.trackView(advertisementId, {
+        sessionId: AnalyticsService.getSessionId(),
+      });
+    } catch (error) {
+      console.error("Failed to track view:", error);
+    }
+  };
 
   const loadAdvertisement = async () => {
     try {
@@ -182,6 +215,76 @@ export default function AdvertisementDetailPage({ params }) {
                     <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
                       {advertisement.format}
                     </span>
+                  </div>
+
+                  {/* Analytics and Actions */}
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <Link
+                      href={`/analytics/${advertisement.id}`}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg
+                        className="h-4 w-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      View Analytics
+                    </Link>
+
+                    {/* Simulate ad interaction buttons for testing */}
+                    <button
+                      onClick={() => {
+                        trackClick();
+                        // Simulate a click action for testing
+                      }}
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg
+                        className="h-4 w-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                        />
+                      </svg>
+                      Simulate Click
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        trackView();
+                        // Simulate a view action for testing
+                      }}
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      <svg
+                        className="h-4 w-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                      </svg>
+                      Simulate View
+                    </button>
                   </div>
                 </div>
 
