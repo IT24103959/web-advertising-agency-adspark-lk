@@ -3,6 +3,7 @@ package com.service.adspark.controller;
 import com.service.adspark.dto.request.paymentmanagement.CreatePaymentRequest;
 import com.service.adspark.dto.request.paymentmanagement.ProcessPaymentRequest;
 import com.service.adspark.dto.response.paymentmanagement.PaymentResponse;
+import com.service.adspark.dto.response.paymentmanagement.PaymentSummaryResponse;
 import com.service.adspark.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -72,6 +74,24 @@ public class PaymentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to get payment status"));
+        }
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<?> getPaymentSummaries(Principal principal) {
+        try {
+            List<PaymentSummaryResponse> summaries = paymentService.getPaymentSummaries(principal.getName());
+            return ResponseEntity.ok(summaries);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            } else if (e.getMessage().contains("unauthorized")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to get payment summaries"));
         }
     }
 }

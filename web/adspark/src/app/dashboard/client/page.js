@@ -244,6 +244,16 @@ export default function ClientDashboard() {
                 </Link>
 
                 <Link
+                  href="/payments"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
+                  <div className="font-medium text-gray-900">My Payments</div>
+                  <div className="text-sm text-gray-600">
+                    View and process your payments
+                  </div>
+                </Link>
+
+                <Link
                   href="/assets"
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
                 >

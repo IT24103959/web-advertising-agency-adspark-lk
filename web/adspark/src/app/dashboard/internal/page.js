@@ -289,18 +289,28 @@ export default function InternalDashboard() {
 
                 {user.role === "FINANCE_TEAM" && (
                   <>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">Billing</div>
-                      <div className="text-sm text-gray-600">
-                        Manage invoices
+                    <Link
+                      href="/payments"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Payment Management
                       </div>
-                    </button>
-                    <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                      <div className="font-medium text-gray-900">Payments</div>
                       <div className="text-sm text-gray-600">
-                        Track payments
+                        View and manage all payments
                       </div>
-                    </button>
+                    </Link>
+                    <Link
+                      href="/payments/create"
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                    >
+                      <div className="font-medium text-gray-900">
+                        Create Payment
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Create new payment requests
+                      </div>
+                    </Link>
                   </>
                 )}
 

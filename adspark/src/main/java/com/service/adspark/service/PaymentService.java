@@ -2,6 +2,7 @@ package com.service.adspark.service;
 
 import com.service.adspark.dto.request.paymentmanagement.CreatePaymentRequest;
 import com.service.adspark.dto.response.paymentmanagement.PaymentResponse;
+import com.service.adspark.dto.response.paymentmanagement.PaymentSummaryResponse;
 import com.service.adspark.dto.request.paymentmanagement.ProcessPaymentRequest;
 import com.service.adspark.model.entity.Advertisement;
 import com.service.adspark.model.entity.Payment;
@@ -15,9 +16,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -268,5 +273,109 @@ public class PaymentService {
         }
 
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentSummaryResponse> getPaymentSummaries(String requestingUsername) {
+        log.info("Getting payment summaries for user: {}", requestingUsername);
+
+        User requestingUser = getUserByUsername(requestingUsername);
+        List<Payment> payments;
+
+        // Get payments based on user role
+        if (isFinancialTeamMember(requestingUser)) {
+            // Finance team can see all payments
+            payments = paymentRepository.findAll();
+            log.info("Finance team user {} retrieving {} total payments", requestingUsername, payments.size());
+        } else {
+            // Clients can only see their own payments
+            payments = paymentRepository.findByUser(requestingUser);
+            log.info("Client user {} retrieving {} personal payments", requestingUsername, payments.size());
+        }
+
+        return payments.stream()
+                .map(payment -> mapToPaymentSummary(payment, isFinancialTeamMember(requestingUser)))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Map Payment entity to PaymentSummaryResponse DTO
+     */
+    private PaymentSummaryResponse mapToPaymentSummary(Payment payment, boolean isFinanceUser) {
+        PaymentSummaryResponse summary = new PaymentSummaryResponse();
+
+        // Basic payment information (visible to all)
+        summary.setId(payment.getId());
+        summary.setPaymentReference(payment.getPaymentReference());
+        summary.setAmount(payment.getAmount());
+        summary.setStatus(payment.getStatus());
+        summary.setPaymentMethod(payment.getPaymentMethod());
+        summary.setTransactionId(payment.getTransactionId());
+        summary.setInvoiceNumber(payment.getInvoiceNumber());
+        summary.setDueDate(payment.getDueDate());
+        summary.setPaidDate(payment.getPaidDate());
+        summary.setDescription(payment.getDescription());
+        summary.setCreatedAt(payment.getCreatedAt());
+        summary.setUpdatedAt(payment.getUpdatedAt());
+
+        // Status indicators
+        summary.setIsOverdue(payment.isOverdue());
+        summary.setIsPaid(payment.isPaid());
+
+        // Calculate days since created and until due
+        LocalDateTime now = LocalDateTime.now();
+        summary.setDaysSinceCreated((int) ChronoUnit.DAYS.between(payment.getCreatedAt(), now));
+
+        if (payment.getDueDate() != null) {
+            long daysUntilDue = ChronoUnit.DAYS.between(LocalDate.now(), payment.getDueDate());
+            summary.setDaysUntilDue((int) daysUntilDue);
+        }
+
+        // Client information (visible to finance team or the client themselves)
+        if (payment.getUser() != null) {
+            summary.setClientUsername(payment.getUser().getUsername());
+            summary.setClientEmail(payment.getUser().getEmail());
+            summary.setClientFullName(payment.getUser().getFullName());
+        }
+
+        // Advertisement information
+        if (payment.getAdvertisement() != null) {
+            summary.setAdvertisementId(payment.getAdvertisement().getId());
+            summary.setAdvertisementTitle(payment.getAdvertisement().getTitle());
+            summary.setAdvertisementClientName(payment.getAdvertisement().getClientName());
+        }
+
+        // Detailed information (visible to finance team only)
+        if (isFinanceUser) {
+            summary.setGatewayResponse(payment.getGatewayResponse());
+
+            // Calculate aggregated information for the client
+            if (payment.getUser() != null) {
+                try {
+                    BigDecimal userTotalPaid = paymentRepository
+                            .findByUserAndStatus(payment.getUser(), PaymentStatus.COMPLETED)
+                            .stream()
+                            .map(Payment::getAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal userTotalPending = paymentRepository
+                            .findByUserAndStatus(payment.getUser(), PaymentStatus.PENDING)
+                            .stream()
+                            .map(Payment::getAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    Long userTotalPayments = paymentRepository.countByUser(payment.getUser());
+
+                    summary.setUserTotalPaid(userTotalPaid);
+                    summary.setUserTotalPending(userTotalPending);
+                    summary.setUserTotalPayments(userTotalPayments);
+                } catch (Exception e) {
+                    log.warn("Could not calculate aggregated payment data for user {}: {}",
+                            payment.getUser().getUsername(), e.getMessage());
+                }
+            }
+        }
+
+        return summary;
     }
 }
