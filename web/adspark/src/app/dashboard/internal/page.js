@@ -555,6 +555,17 @@ export default function InternalDashboard() {
                     </Link>
                   </>
                 )}
+
+                {/* Common actions for all internal users */}
+                <Link
+                  href="/advertisments"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
+                  <div className="font-medium text-gray-900">Featured Ads</div>
+                  <div className="text-sm text-gray-600">
+                    Browse all public advertisements
+                  </div>
+                </Link>
               </div>
             </div>
           </div>

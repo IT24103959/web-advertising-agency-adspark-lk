@@ -233,6 +233,36 @@ class AdvertisementService {
   }
 
   /**
+   * Get all public advertisements (No authentication required)
+   * @returns {Promise<Array>} List of public advertisements
+   */
+  static async getPublicAdvertisements() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/adverts/public`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to get public advertisements: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        throw new Error(
+          "Unable to connect to server. Please check your connection."
+        );
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Format currency value
    * @param {number} amount - Amount to format
    * @returns {string} Formatted currency string
