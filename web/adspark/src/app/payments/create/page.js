@@ -13,7 +13,7 @@ import AdvertisementService from "../../../services/advertisementService";
 
 export default function CreatePaymentPage() {
   const { user } = useAuth();
-  const { getStoredCredentials, requestCredentials } = useCredentials();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [formData, setFormData] = useState({
     amount: "",

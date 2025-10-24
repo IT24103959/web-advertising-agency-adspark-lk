@@ -383,15 +383,6 @@ export default function ClientDashboard() {
                 </Link>
 
                 <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                  <div className="font-medium text-gray-900">
-                    Billing & Payments
-                  </div>
-                  <div className="text-sm text-black">
-                    Manage payments and invoices
-                  </div>
-                </button>
-
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                   <div className="font-medium text-gray-900">Support</div>
                   <div className="text-sm text-black">Get help and support</div>
                 </button>

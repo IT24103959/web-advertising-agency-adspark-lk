@@ -4,16 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
-import {
-  useCredentials,
-  CredentialsModal,
-} from "../../context/CredentialsContext";
+import { useCredentials } from "../../context/CredentialsContext";
 import AdvertisementService from "../../services/advertisementService";
 import AnalyticsService from "../../services/analyticsService";
 
 export default function AdvertisementsPage() {
   const { user } = useAuth();
-  const { getStoredCredentials, requestCredentials } = useCredentials();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [advertisements, setAdvertisements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,9 +35,17 @@ export default function AdvertisementsPage() {
 
       const credentials = getStoredCredentials();
       if (!credentials) {
-        requestCredentials(() => {
-          loadAdvertisements();
-        });
+        // For logged-in clients without credentials, show helpful message instead of modal
+        if (user.client && !user.internalUser) {
+          setError(
+            "Advertisement management requires additional permissions. Please contact your account manager for access."
+          );
+        } else {
+          setError(
+            "Authentication required for advertisement management. Please contact support."
+          );
+        }
+        setLoading(false);
         return;
       }
 
@@ -428,9 +433,6 @@ export default function AdvertisementsPage() {
           </div>
         )}
       </div>
-
-      {/* Credentials Modal */}
-      <CredentialsModal />
     </div>
   );
 }

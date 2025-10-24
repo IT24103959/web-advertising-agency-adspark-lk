@@ -59,6 +59,22 @@ export default function AdvertisementAnalyticsPage({ params }) {
 
     try {
       const credentials = getStoredCredentials();
+
+      if (!credentials) {
+        // For logged-in users without credentials, show helpful message
+        if (user?.client && !user?.internalUser) {
+          setAnalyticsError(
+            "Advertisement analytics requires additional permissions. Please contact your account manager for detailed analytics access."
+          );
+        } else {
+          setAnalyticsError(
+            "Authentication required for advertisement analytics. Please contact support."
+          );
+        }
+        setAnalyticsLoading(false);
+        return;
+      }
+
       const result = await AnalyticsService.getAdvertisementMetrics(
         advertisementId,
         credentials

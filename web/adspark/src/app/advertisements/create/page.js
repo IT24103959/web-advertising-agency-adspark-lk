@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
-import {
-  useCredentials,
-  CredentialsModal,
-} from "../../../context/CredentialsContext";
+import { useCredentials } from "../../../context/CredentialsContext";
 import AdvertisementService from "../../../services/advertisementService";
 
 export default function CreateAdvertisementPage() {
   const { user } = useAuth();
-  const { getStoredCredentials, requestCredentials } = useCredentials();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: "",
@@ -107,9 +104,16 @@ export default function CreateAdvertisementPage() {
       const credentials = getStoredCredentials();
       if (!credentials) {
         setLoading(false);
-        requestCredentials(() => {
-          handleSubmit(e);
-        });
+        // For logged-in users without credentials, show helpful error
+        if (user.client && !user.internalUser) {
+          setSubmitError(
+            "Advertisement creation requires additional permissions. Please contact your account manager for access."
+          );
+        } else {
+          setSubmitError(
+            "Authentication required for advertisement creation. Please contact support."
+          );
+        }
         return;
       }
 
@@ -524,9 +528,6 @@ export default function CreateAdvertisementPage() {
           </form>
         </div>
       </div>
-
-      {/* Credentials Modal */}
-      <CredentialsModal />
     </div>
   );
 }

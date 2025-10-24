@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
-import {
-  useCredentials,
-  CredentialsModal,
-} from "../../context/CredentialsContext";
+import { useCredentials } from "../../context/CredentialsContext";
 import PaymentService from "../../services/paymentService";
 
 export default function PaymentsPage() {
   const { user } = useAuth();
-  const { getStoredCredentials, requestCredentials } = useCredentials();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +44,17 @@ export default function PaymentsPage() {
 
       const credentials = getStoredCredentials();
       if (!credentials) {
-        requestCredentials(() => {
-          loadPayments();
-        });
+        // For logged-in clients without credentials, show helpful message instead of modal
+        if (user.client && !user.internalUser) {
+          setError(
+            "Payment management requires additional permissions. Please contact your account manager for access to payment features."
+          );
+        } else {
+          setError(
+            "Authentication required for payment management. Please contact support."
+          );
+        }
+        setLoading(false);
         return;
       }
 
@@ -439,9 +444,6 @@ export default function PaymentsPage() {
           </div>
         )}
       </div>
-
-      {/* Credentials Modal */}
-      <CredentialsModal />
     </div>
   );
 }

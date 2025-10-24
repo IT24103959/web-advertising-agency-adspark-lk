@@ -57,6 +57,22 @@ export default function AnalyticsPage() {
 
     try {
       const credentials = getStoredCredentials();
+
+      if (!credentials) {
+        // For logged-in users without credentials, show helpful message
+        if (user?.client && !user?.internalUser) {
+          setAnalyticsError(
+            "Analytics access requires additional permissions. Please contact your account manager for detailed analytics access."
+          );
+        } else {
+          setAnalyticsError(
+            "Authentication required for analytics access. Please contact support."
+          );
+        }
+        setAnalyticsLoading(false);
+        return;
+      }
+
       const result = await AnalyticsService.getDashboardSummary(credentials);
 
       if (result.success) {
