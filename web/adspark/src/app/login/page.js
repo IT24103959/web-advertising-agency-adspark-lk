@@ -160,7 +160,7 @@ export default function LoginPage() {
                 required
                 value={formData.username}
                 onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                 placeholder="Enter your username"
               />
             </div>
@@ -179,7 +179,7 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                 placeholder="Enter your password"
               />
             </div>
@@ -214,19 +214,6 @@ export default function LoginPage() {
               </p>
             </div>
           </form>
-
-          {/* Demo Users Info */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-black mb-2">Demo Users:</h3>
-            <div className="text-xs text-black space-y-1">
-              <div>
-                <strong>Client:</strong> username: rob, password: rob123@abc
-              </div>
-              <div>
-                <strong>Employee:</strong> username: alice, password: alice123
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

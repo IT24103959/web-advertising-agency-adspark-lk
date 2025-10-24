@@ -4,10 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
-import {
-  useCredentials,
-  CredentialsModal,
-} from "../../../context/CredentialsContext";
+import { useCredentials } from "../../../context/CredentialsContext";
 import AnalyticsService, {
   formatNumber,
   formatPercentage,
@@ -16,11 +13,10 @@ import { MetricsCard } from "../../../components/AnalyticsComponents";
 
 export default function ClientDashboard() {
   const { user, isLoggedIn, loading, logout } = useAuth();
-  const { getStoredCredentials, requestCredentials } = useCredentials();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  const [credentialsRequested, setCredentialsRequested] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -41,28 +37,17 @@ export default function ClientDashboard() {
     }
   }, [isLoggedIn, user, loading, router]);
 
-  // Fetch analytics data when user is loaded
-  useEffect(() => {
-    if (isLoggedIn && user?.client) {
-      fetchAnalyticsData();
-    }
-  }, [isLoggedIn, user?.client]); // Remove fetchAnalyticsData from dependencies
-
   const fetchAnalyticsData = useCallback(async () => {
     setAnalyticsLoading(true);
     try {
+      // For clients, we'll try to get analytics but handle gracefully if credentials aren't available
       const credentials = getStoredCredentials();
+
       if (!credentials) {
-        // Request credentials if not available and not already requested
-        setAnalyticsLoading(false); // Reset loading state
-        if (!credentialsRequested) {
-          setCredentialsRequested(true);
-          requestCredentials(() => {
-            // Reset the flag and retry fetching analytics after credentials are provided
-            setCredentialsRequested(false);
-            fetchAnalyticsData();
-          });
-        }
+        // For logged-in clients, we can skip analytics if no credentials are provided
+        // This prevents the credentials modal from showing for already logged-in users
+        console.log("Analytics unavailable - no credentials provided");
+        setAnalyticsLoading(false);
         return;
       }
 
@@ -72,10 +57,19 @@ export default function ClientDashboard() {
       }
     } catch (error) {
       console.error("Analytics fetch error:", error);
+      // Don't show credentials modal for logged-in clients
+      setAnalyticsData(null);
     } finally {
       setAnalyticsLoading(false);
     }
-  }, [getStoredCredentials, requestCredentials, credentialsRequested]); // Add dependencies for useCallback
+  }, [getStoredCredentials]);
+
+  // Fetch analytics data when user is loaded
+  useEffect(() => {
+    if (isLoggedIn && user?.client) {
+      fetchAnalyticsData();
+    }
+  }, [isLoggedIn, user?.client, fetchAnalyticsData]);
 
   const handleLogout = () => {
     logout();
@@ -424,15 +418,20 @@ export default function ClientDashboard() {
                   </div>
                 </Link>
 
-                <Link
-                  href="/assets"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
-                >
-                  <div className="font-medium text-gray-900">Asset Library</div>
-                  <div className="text-sm text-black">
-                    Browse marketing assets and templates
-                  </div>
-                </Link>
+                {/* Show Asset Library only if user has stored credentials */}
+                {getStoredCredentials() && (
+                  <Link
+                    href="/assets"
+                    className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                  >
+                    <div className="font-medium text-gray-900">
+                      Asset Library
+                    </div>
+                    <div className="text-sm text-black">
+                      Browse marketing assets and templates
+                    </div>
+                  </Link>
+                )}
 
                 <Link
                   href="/advertisments"
@@ -479,9 +478,6 @@ export default function ClientDashboard() {
           </div>
         </div>
       </main>
-
-      {/* Credentials Modal */}
-      <CredentialsModal />
     </div>
   );
 }

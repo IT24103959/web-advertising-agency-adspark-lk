@@ -16,7 +16,7 @@ import {
 
 export default function AssetBrowsePage() {
   const { user, isLoggedIn, loading: authLoading, logout } = useAuth();
-  const { requestCredentials } = useCredentials();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
 
   const [assets, setAssets] = useState([]);
@@ -67,7 +67,23 @@ export default function AssetBrowsePage() {
     setError(null);
 
     try {
-      const credentials = await requestCredentials("search_assets");
+      // Check if credentials are available without triggering modal
+      const credentials = getStoredCredentials();
+
+      if (!credentials) {
+        // For clients without credentials, show a helpful message
+        if (user.client && !user.internalUser) {
+          setError(
+            "Asset browsing requires additional permissions. Please contact your account manager for access to asset management features."
+          );
+        } else {
+          setError(
+            "Authentication required for asset management. Please contact support."
+          );
+        }
+        setLoading(false);
+        return;
+      }
 
       const searchParams = {
         ...filters,

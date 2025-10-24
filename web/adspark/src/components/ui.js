@@ -126,7 +126,7 @@ export function Input({
         </label>
       )}
       <input
-        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
           error ? "border-red-300" : "border-gray-300"
         }`}
         {...props}
@@ -156,7 +156,7 @@ export function Select({
         </label>
       )}
       <select
-        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
           error ? "border-red-300" : "border-gray-300"
         }`}
         {...props}
@@ -191,7 +191,7 @@ export function Textarea({
         </label>
       )}
       <textarea
-        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+        className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
           error ? "border-red-300" : "border-gray-300"
         }`}
         {...props}
