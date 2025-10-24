@@ -43,7 +43,7 @@ export default function InternalDashboard() {
       isLoggedIn &&
       user?.internalUser &&
       (user.internalUser.role === "MARKETING_MANAGER" ||
-        user.internalUser.role === "SYSTEM_ADMINISTRATOR")
+        user.internalUser.role === "SYSTEM_ADMIN")
     ) {
       fetchAnalyticsData();
     }
@@ -86,7 +86,7 @@ export default function InternalDashboard() {
 
   const getRoleDisplayName = (role) => {
     const roleMap = {
-      SYSTEM_ADMINISTRATOR: "System Administrator",
+      SYSTEM_ADMIN: "System Administrator",
       MARKETING_MANAGER: "Marketing Manager",
       GRAPHIC_DESIGNER: "Graphic Designer",
       IT_SUPPORT: "IT Support",
@@ -139,7 +139,7 @@ export default function InternalDashboard() {
         <div className="px-4 py-6 sm:px-0">
           {/* Analytics Overview for Marketing Managers */}
           {(user?.internalUser?.role === "MARKETING_MANAGER" ||
-            user?.internalUser?.role === "SYSTEM_ADMINISTRATOR") && (
+            user?.internalUser?.role === "SYSTEM_ADMIN") && (
             <div className="mb-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-medium text-gray-900">
@@ -489,7 +489,7 @@ export default function InternalDashboard() {
                   </>
                 )}
 
-                {user.role === "SYSTEM_ADMINISTRATOR" && (
+                {user.role === "SYSTEM_ADMIN" && (
                   <>
                     <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                       <div className="font-medium text-gray-900">

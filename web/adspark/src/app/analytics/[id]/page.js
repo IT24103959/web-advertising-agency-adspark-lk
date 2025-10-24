@@ -38,7 +38,7 @@ export default function AdvertisementAnalyticsPage({ params }) {
         user?.client ||
         (user?.internalUser &&
           (user.internalUser.role === "MARKETING_MANAGER" ||
-            user.internalUser.role === "SYSTEM_ADMINISTRATOR"));
+            user.internalUser.role === "SYSTEM_ADMIN"));
 
       if (!hasPermission) {
         router.push("/dashboard/internal");
@@ -98,7 +98,7 @@ export default function AdvertisementAnalyticsPage({ params }) {
       !(
         user?.internalUser &&
         (user.internalUser.role === "MARKETING_MANAGER" ||
-          user.internalUser.role === "SYSTEM_ADMINISTRATOR")
+          user.internalUser.role === "SYSTEM_ADMIN")
       ))
   ) {
     return null; // Will redirect via useEffect

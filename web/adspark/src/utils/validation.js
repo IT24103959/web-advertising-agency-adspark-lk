@@ -32,7 +32,7 @@ export const validateUrl = (url) => {
 
 // Role options for internal users
 export const INTERNAL_ROLES = [
-  { value: "SYSTEM_ADMINISTRATOR", label: "System Administrator" },
+  { value: "SYSTEM_ADMIN", label: "System Administrator" },
   { value: "MARKETING_MANAGER", label: "Marketing Manager" },
   { value: "GRAPHIC_DESIGNER", label: "Graphic Designer" },
   { value: "IT_SUPPORT", label: "IT Support" },
