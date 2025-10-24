@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "../../../context/AuthContext";
-import AnalyticsService from "../../../services/analyticsService";
+import { useAuth } from "../../context/AuthContext";
+import { useCredentials } from "../../context/CredentialsContext";
+import AnalyticsService from "../../services/analyticsService";
 import {
   AnalyticsOverview,
   LineChart,
@@ -12,10 +13,11 @@ import {
   TopPerformingAds,
   RecentEvents,
   AnalyticsLoadingSkeleton,
-} from "../../../components/AnalyticsComponents";
+} from "../../components/AnalyticsComponents";
 
 export default function AnalyticsPage() {
   const { user, isLoggedIn, loading } = useAuth();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function AnalyticsPage() {
         user?.client ||
         (user?.internalUser &&
           (user.internalUser.role === "MARKETING_MANAGER" ||
-            user.internalUser.role === "SYSTEM_ADMINISTRATOR"));
+            user.internalUser.role === "SYSTEM_ADMIN"));
 
       if (!hasPermission) {
         router.push("/dashboard/internal");
@@ -54,7 +56,8 @@ export default function AnalyticsPage() {
     setAnalyticsError(null);
 
     try {
-      const result = await AnalyticsService.getDashboardSummary();
+      const credentials = getStoredCredentials();
+      const result = await AnalyticsService.getDashboardSummary(credentials);
 
       if (result.success) {
         setAnalyticsData(result.data);

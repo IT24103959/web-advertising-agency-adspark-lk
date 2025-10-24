@@ -140,7 +140,7 @@ export const CredentialsModal = () => {
         <h2 className="text-xl font-bold text-gray-900 mb-4">
           Authentication Required
         </h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-black mb-6">
           Please enter your credentials to access asset management features.
         </p>
 
@@ -154,7 +154,7 @@ export const CredentialsModal = () => {
           <div>
             <label
               htmlFor="username"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-black"
             >
               Username
             </label>
@@ -172,7 +172,7 @@ export const CredentialsModal = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-black"
             >
               Password
             </label>
@@ -190,7 +190,7 @@ export const CredentialsModal = () => {
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              className="px-4 py-2 text-sm font-medium text-black bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               Cancel
             </button>
@@ -204,7 +204,7 @@ export const CredentialsModal = () => {
         </form>
 
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-black">
             Your credentials are temporarily stored in this session for asset
             management operations.
           </p>

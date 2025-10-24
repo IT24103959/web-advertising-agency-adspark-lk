@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "../../../context/AuthContext";
-import { useCredentials } from "../../../context/CredentialsContext";
-import { AssetService, ASSET_TYPES } from "../../../services/assetService";
+import { useAuth } from "../../context/AuthContext";
+import { useCredentials } from "../../context/CredentialsContext";
+import { AssetService, ASSET_TYPES } from "../../services/assetService";
 import {
   LoadingSpinner,
   ErrorMessage,
   Button,
   Input,
   Select,
-} from "../../../components/ui";
+} from "../../components/ui";
 
 export default function AssetBrowsePage() {
   const { user, isLoggedIn, loading: authLoading, logout } = useAuth();

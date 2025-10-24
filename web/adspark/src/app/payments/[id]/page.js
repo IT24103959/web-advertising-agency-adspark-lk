@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthContext } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import PaymentService from "../../../services/paymentService";
 
 export default function PaymentDetailPage({ params }) {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const router = useRouter();
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);

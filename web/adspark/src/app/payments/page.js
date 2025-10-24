@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+import {
+  useCredentials,
+  CredentialsModal,
+} from "../../context/CredentialsContext";
 import PaymentService from "../../services/paymentService";
 
 export default function PaymentsPage() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
+  const { getStoredCredentials, requestCredentials } = useCredentials();
   const router = useRouter();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +44,16 @@ export default function PaymentsPage() {
     try {
       setLoading(true);
       setError("");
-      const data = await PaymentService.getPaymentSummaries();
+
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        requestCredentials(() => {
+          loadPayments();
+        });
+        return;
+      }
+
+      const data = await PaymentService.getPaymentSummaries(credentials);
       setPayments(data);
     } catch (err) {
       setError(err.message || "Failed to load payments");
@@ -425,6 +439,9 @@ export default function PaymentsPage() {
           </div>
         )}
       </div>
+
+      {/* Credentials Modal */}
+      <CredentialsModal />
     </div>
   );
 }

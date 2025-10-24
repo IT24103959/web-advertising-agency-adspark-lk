@@ -1,6 +1,8 @@
 // Asset management API service functions with Basic Auth support
 
 const API_BASE_URL = "http://localhost:8080/api";
+// Proxy URL for development (to avoid CORS issues)
+const API_PROXY_BASE = "/api";
 
 // Helper function to create Basic Auth header
 const createBasicAuthHeader = (username, password) => {
@@ -50,7 +52,8 @@ export class AssetService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/assets`, {
+      // Use proxy route to avoid CORS issues in development
+      const response = await fetch(`${API_PROXY_BASE}/assets`, {
         method: "POST",
         headers: {
           Authorization: createBasicAuthHeader(
@@ -81,7 +84,8 @@ export class AssetService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/assets/search`, {
+      // Use proxy route to avoid CORS issues in development
+      const response = await fetch(`${API_PROXY_BASE}/assets/search`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

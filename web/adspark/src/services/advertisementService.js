@@ -1,23 +1,31 @@
 // Advertisement Service for handling API operations
-import { CredentialsContext } from "../context/CredentialsContext";
 
 const API_BASE_URL = "http://localhost:8080/api";
+// Proxy URL for development (to avoid CORS issues)
+const API_PROXY_BASE = "/api";
 
-class AdvertisementService {
+// Helper function to create Basic Auth headers
+const createAuthHeaders = (credentials) => {
+  if (!credentials) {
+    throw new Error("Authentication required");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization:
+      "Basic " + btoa(`${credentials.username}:${credentials.password}`),
+  };
+};
+
+export class AdvertisementService {
   /**
    * Create a new advertisement (Internal users only)
    * @param {Object} advertisementData - Advertisement data
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Object>} Created advertisement
    */
-  static async createAdvertisement(advertisementData) {
-    const credentials = await CredentialsContext.getCredentials();
-
-    if (!credentials) {
-      throw new Error("Authentication required");
-    }
-
-    const authHeader =
-      "Basic " + btoa(`${credentials.username}:${credentials.password}`);
+  static async createAdvertisement(advertisementData, credentials) {
+    const headers = createAuthHeaders(credentials);
 
     // Validate required fields
     const requiredFields = [
@@ -60,19 +68,16 @@ class AdvertisementService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/adverts`, {
+      // Use proxy route to avoid CORS issues in development
+      const response = await fetch(`${API_PROXY_BASE}/adverts`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authHeader,
-        },
+        headers,
         body: JSON.stringify(advertisementData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 403) {
           throw new Error(
@@ -96,29 +101,22 @@ class AdvertisementService {
   /**
    * Get advertisement by ID
    * @param {number} id - Advertisement ID
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Object>} Advertisement details
    */
-  static async getAdvertisement(id) {
-    const credentials = await CredentialsContext.getCredentials();
-
-    if (!credentials) {
-      throw new Error("Authentication required");
-    }
-
-    const authHeader =
-      "Basic " + btoa(`${credentials.username}:${credentials.password}`);
+  static async getAdvertisement(id, credentials) {
+    const headers = createAuthHeaders(credentials);
 
     try {
       const response = await fetch(`${API_BASE_URL}/adverts/${id}`, {
         method: "GET",
         headers: {
-          Authorization: authHeader,
+          Authorization: headers.Authorization,
         },
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 404) {
           throw new Error("Advertisement not found");
@@ -144,29 +142,22 @@ class AdvertisementService {
   /**
    * Delete advertisement (Internal users only)
    * @param {number} id - Advertisement ID
+   * @param {Object} credentials - User credentials
    * @returns {Promise<string>} Success message
    */
-  static async deleteAdvertisement(id) {
-    const credentials = await CredentialsContext.getCredentials();
-
-    if (!credentials) {
-      throw new Error("Authentication required");
-    }
-
-    const authHeader =
-      "Basic " + btoa(`${credentials.username}:${credentials.password}`);
+  static async deleteAdvertisement(id, credentials) {
+    const headers = createAuthHeaders(credentials);
 
     try {
       const response = await fetch(`${API_BASE_URL}/adverts/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: authHeader,
+          Authorization: headers.Authorization,
         },
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 403) {
           throw new Error(
@@ -193,29 +184,23 @@ class AdvertisementService {
 
   /**
    * Get client's advertisement summaries
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Array>} Array of advertisement summaries
    */
-  static async getClientAdvertisementSummaries() {
-    const credentials = await CredentialsContext.getCredentials();
-
-    if (!credentials) {
-      throw new Error("Authentication required");
-    }
-
-    const authHeader =
-      "Basic " + btoa(`${credentials.username}:${credentials.password}`);
+  static async getClientAdvertisementSummaries(credentials) {
+    const headers = createAuthHeaders(credentials);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/adverts/my-summary`, {
+      // Use proxy route to avoid CORS issues in development
+      const response = await fetch(`${API_PROXY_BASE}/adverts/my-summary`, {
         method: "GET",
         headers: {
-          Authorization: authHeader,
+          Authorization: headers.Authorization,
         },
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         }
         throw new Error(`Failed to get advertisements: ${response.statusText}`);
@@ -311,14 +296,14 @@ class AdvertisementService {
    */
   static getStatusColor(status) {
     const statusColors = {
-      DRAFT: "text-gray-500 bg-gray-100",
+      DRAFT: "text-black bg-gray-100",
       PENDING: "text-yellow-700 bg-yellow-100",
       APPROVED: "text-green-700 bg-green-100",
       PUBLISHED: "text-blue-700 bg-blue-100",
       COMPLETED: "text-purple-700 bg-purple-100",
       CANCELLED: "text-red-700 bg-red-100",
     };
-    return statusColors[status] || "text-gray-500 bg-gray-100";
+    return statusColors[status] || "text-black bg-gray-100";
   }
 
   /**
@@ -332,7 +317,7 @@ class AdvertisementService {
       2: "text-yellow-700 bg-yellow-100", // Medium
       3: "text-green-700 bg-green-100", // Low
     };
-    return priorityColors[priorityLevel] || "text-gray-500 bg-gray-100";
+    return priorityColors[priorityLevel] || "text-black bg-gray-100";
   }
 
   /**

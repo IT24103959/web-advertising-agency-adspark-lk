@@ -76,6 +76,7 @@ public class PaymentService {
         payment.setDescription(request.getDescription());
         payment.setDueDate(request.getDueDate());
         payment.setStatus(PaymentStatus.PENDING);
+        payment.setTransactionId(generateTransactionId()); // Generate transaction ID during creation
         payment.setUser(clientUser);
         payment.setAdvertisement(advertisement);
 
@@ -186,7 +187,8 @@ public class PaymentService {
      * Check if user is financial team member
      */
     private boolean isFinancialTeamMember(User user) {
-        return user.getRole() == UserRole.FINANCE_TEAM || user.getRole()  == UserRole.SYSTEM_ADMIN || user.getRole()  == UserRole.MARKETING_MANAGER;
+        return user.getRole() == UserRole.FINANCE_TEAM || user.getRole() == UserRole.SYSTEM_ADMIN
+                || user.getRole() == UserRole.MARKETING_MANAGER;
     }
 
     /**
@@ -194,6 +196,13 @@ public class PaymentService {
      */
     private String generatePaymentReference() {
         return "PAY-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    /**
+     * Generate a unique transaction ID
+     */
+    private String generateTransactionId() {
+        return "TXN-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
     /**

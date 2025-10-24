@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AdvertisementService } from "@/services/advertisementService";
-import { AnalyticsService } from "@/services/analyticsService";
+import AdvertisementService from "../../services/advertisementService";
+import AnalyticsService from "../../services/analyticsService";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -16,16 +16,6 @@ export default function PublicAdvertisementsPage() {
       try {
         const ads = await AdvertisementService.getPublicAdvertisements();
         setAdvertisements(ads);
-
-        // Track page view analytics
-        await AnalyticsService.trackEvent({
-          eventType: "PAGE_VIEW",
-          page: "public_advertisements",
-          metadata: {
-            totalAds: ads.length,
-            timestamp: new Date().toISOString(),
-          },
-        });
 
         setLoading(false);
       } catch (err) {
@@ -41,7 +31,7 @@ export default function PublicAdvertisementsPage() {
     try {
       // Track click event
       await AnalyticsService.trackEvent({
-        eventType: "AD_CLICK",
+        eventType: "CLICK",
         advertisementId: advertisement.id,
         page: "public_advertisements",
         metadata: {
@@ -59,7 +49,7 @@ export default function PublicAdvertisementsPage() {
     try {
       // Track impression event
       await AnalyticsService.trackEvent({
-        eventType: "AD_IMPRESSION",
+        eventType: "IMPRESSION",
         advertisementId: advertisement.id,
         page: "public_advertisements",
         metadata: {

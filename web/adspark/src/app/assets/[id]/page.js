@@ -3,14 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "../../../../context/AuthContext";
-import { useCredentials } from "../../../../context/CredentialsContext";
-import { AssetService } from "../../../../services/assetService";
-import {
-  LoadingSpinner,
-  ErrorMessage,
-  Button,
-} from "../../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { useCredentials } from "../../../context/CredentialsContext";
+import { AssetService } from "../../../services/assetService";
+import { LoadingSpinner, ErrorMessage, Button } from "../../../components/ui";
 
 export default function AssetDetailPage() {
   const { user, isLoggedIn, loading: authLoading, logout } = useAuth();

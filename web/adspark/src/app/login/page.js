@@ -114,7 +114,7 @@ export default function LoginPage() {
         <h1 className="text-center text-3xl font-bold text-gray-900 mb-2">
           AdSpark
         </h1>
-        <h2 className="text-center text-xl text-gray-600">
+        <h2 className="text-center text-xl text-black">
           Sign in to your account
         </h2>
       </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-black"
               >
                 Username
               </label>
@@ -168,7 +168,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-black"
               >
                 Password
               </label>
@@ -203,7 +203,7 @@ export default function LoginPage() {
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-black">
                 Don't have an account?{" "}
                 <Link
                   href="/signup"
@@ -217,10 +217,8 @@ export default function LoginPage() {
 
           {/* Demo Users Info */}
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Demo Users:
-            </h3>
-            <div className="text-xs text-gray-500 space-y-1">
+            <h3 className="text-sm font-medium text-black mb-2">Demo Users:</h3>
+            <div className="text-xs text-black space-y-1">
               <div>
                 <strong>Client:</strong> username: rob, password: rob123@abc
               </div>

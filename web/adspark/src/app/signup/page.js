@@ -197,9 +197,7 @@ export default function SignupPage() {
         <h1 className="text-center text-3xl font-bold text-gray-900 mb-2">
           AdSpark
         </h1>
-        <h2 className="text-center text-xl text-gray-600">
-          Create your account
-        </h2>
+        <h2 className="text-center text-xl text-black">Create your account</h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -213,7 +211,7 @@ export default function SignupPage() {
                 className={`px-4 py-2 text-sm font-medium rounded-l-lg border ${
                   userType === "external"
                     ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    : "bg-white text-black border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 Client Account
@@ -224,7 +222,7 @@ export default function SignupPage() {
                 className={`px-4 py-2 text-sm font-medium rounded-r-lg border-t border-r border-b ${
                   userType === "internal"
                     ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    : "bg-white text-black border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 Employee Account
@@ -340,7 +338,7 @@ export default function SignupPage() {
                 onChange={handleInputChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-black">
                 At least 8 characters with letters and numbers
               </p>
             </div>
@@ -605,7 +603,7 @@ export default function SignupPage() {
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-black">
                 Already have an account?{" "}
                 <Link
                   href="/login"

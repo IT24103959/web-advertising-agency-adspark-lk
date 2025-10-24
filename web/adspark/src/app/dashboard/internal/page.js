@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
+import { useCredentials } from "../../../context/CredentialsContext";
 import AnalyticsService, {
   formatNumber,
   formatPercentage,
@@ -12,6 +13,7 @@ import { MetricsCard } from "../../../components/AnalyticsComponents";
 
 export default function InternalDashboard() {
   const { user, isLoggedIn, loading, logout } = useAuth();
+  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -50,7 +52,8 @@ export default function InternalDashboard() {
   const fetchAnalyticsData = async () => {
     setAnalyticsLoading(true);
     try {
-      const result = await AnalyticsService.getDashboardSummary();
+      const credentials = getStoredCredentials();
+      const result = await AnalyticsService.getDashboardSummary(credentials);
       if (result.success) {
         setAnalyticsData(result.data.overview);
       }

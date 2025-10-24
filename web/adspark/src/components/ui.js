@@ -13,7 +13,7 @@ export function LoadingSpinner({ size = "large", message = "Loading..." }) {
         <div
           className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-blue-600 mx-auto`}
         ></div>
-        <p className="mt-4 text-gray-600">{message}</p>
+        <p className="mt-4 text-black">{message}</p>
       </div>
     </div>
   );
@@ -120,7 +120,7 @@ export function Input({
       {label && (
         <label
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-black"
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>
@@ -150,7 +150,7 @@ export function Select({
       {label && (
         <label
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-black"
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>
@@ -185,7 +185,7 @@ export function Textarea({
       {label && (
         <label
           htmlFor={props.id}
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-black"
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>

@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthContext } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
+import {
+  useCredentials,
+  CredentialsModal,
+} from "../../../context/CredentialsContext";
 import PaymentService from "../../../services/paymentService";
 import AdvertisementService from "../../../services/advertisementService";
 
 export default function CreatePaymentPage() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
+  const { getStoredCredentials, requestCredentials } = useCredentials();
   const router = useRouter();
   const [formData, setFormData] = useState({
     amount: "",
@@ -24,6 +29,10 @@ export default function CreatePaymentPage() {
   const [advertisements, setAdvertisements] = useState([]);
   const [clients, setClients] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [credentialsModal, setCredentialsModal] = useState({
+    isOpen: false,
+    onSuccess: null,
+  });
 
   useEffect(() => {
     if (!user) {
@@ -44,53 +53,54 @@ export default function CreatePaymentPage() {
     try {
       setLoadingData(true);
 
+      // Check for credentials
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        setLoadingData(false);
+        setCredentialsModal({
+          isOpen: true,
+          onSuccess: () => {
+            setCredentialsModal({ isOpen: false, onSuccess: null });
+            loadInitialData();
+          },
+        });
+        return;
+      }
+
       // Generate default invoice number
       const defaultInvoiceNumber = PaymentService.generateInvoiceNumber();
       setFormData((prev) => ({ ...prev, invoiceNumber: defaultInvoiceNumber }));
 
-      // Note: In a real application, you would load advertisements and clients from API
-      // For now, we'll use placeholder data since we don't have these endpoints
-      setAdvertisements([
-        {
-          id: 1,
-          title: "Summer Campaign 2025",
-          clientName: "rob",
-          budget: 50000,
-        },
-        {
-          id: 3,
-          title: "Winter Promotion",
-          clientName: "alice",
-          budget: 30000,
-        },
-        {
-          id: 5,
-          title: "Brand Awareness Campaign",
-          clientName: "john",
-          budget: 75000,
-        },
-      ]);
+      // Load advertisements and clients from API
+      try {
+        const [advertisementsData, clientsData] = await Promise.all([
+          AdvertisementService.getClientAdvertisementSummaries(credentials),
+          // For clients, we can use a subset of user data - this would need a proper endpoint
+          // For now, let's extract unique clients from advertisements
+          AdvertisementService.getClientAdvertisementSummaries(credentials),
+        ]);
 
-      setClients([
-        {
-          id: 2,
-          username: "rob",
-          fullName: "Rob Johnson",
-          email: "rob@adspark.lk",
-        },
-        {
-          id: 4,
-          username: "alice",
-          fullName: "Alice Smith",
-          email: "alice@example.com",
-        },
-        {
-          id: 6,
-          username: "john",
-          fullName: "John Doe",
-          email: "john@example.com",
-        },
-      ]);
+        setAdvertisements(advertisementsData);
+
+        // Extract unique clients from advertisements
+        const uniqueClients = advertisementsData.reduce((clients, ad) => {
+          // Check if client already exists by ID
+          if (!clients.find((c) => c.id === ad.clientId)) {
+            clients.push({
+              id: ad.clientId,
+              username: ad.clientName,
+              fullName: ad.clientName,
+              email: ad.clientEmail || `${ad.clientName}@example.com`,
+            });
+          }
+          return clients;
+        }, []);
+
+        setClients(uniqueClients);
+      } catch (apiError) {
+        console.error("Error fetching data from API:", apiError);
+        setSubmitError("Failed to load advertisements and clients data");
+      }
     } catch (err) {
       setSubmitError("Failed to load initial data");
       console.error("Error loading initial data:", err);
@@ -130,18 +140,45 @@ export default function CreatePaymentPage() {
 
   const validateForm = () => {
     const validation = PaymentService.validatePaymentData(formData);
-    setErrors(
-      validation.errors.reduce((acc, error) => {
+    const errorMap = {};
+
+    validation.errors.forEach((error) => {
+      if (error.includes("Client")) {
+        errorMap.client = error;
+      } else if (error.includes("Advertisement")) {
+        errorMap.advertisement = error;
+      } else if (error.includes("Amount")) {
+        errorMap.amount = error;
+      } else if (error.includes("Invoice")) {
+        errorMap.invoiceNumber = error;
+      } else if (error.includes("due date")) {
+        errorMap.dueDate = error;
+      } else {
+        // Default mapping for other errors
         const field = error.toLowerCase().split(" ")[0];
-        acc[field] = error;
-        return acc;
-      }, {})
-    );
+        errorMap[field] = error;
+      }
+    });
+
+    setErrors(errorMap);
     return validation.isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check for credentials
+    const credentials = getStoredCredentials();
+    if (!credentials) {
+      setCredentialsModal({
+        isOpen: true,
+        onSuccess: () => {
+          setCredentialsModal({ isOpen: false, onSuccess: null });
+          handleSubmit(e);
+        },
+      });
+      return;
+    }
 
     if (!validateForm()) {
       return;
@@ -159,11 +196,27 @@ export default function CreatePaymentPage() {
         clientUserId: Number(formData.clientUserId),
       };
 
+      // Validate that required numeric fields are valid
+      if (!submitData.clientUserId || submitData.clientUserId === 0) {
+        setSubmitError("Please select a client");
+        return;
+      }
+
+      if (!submitData.advertisementId || submitData.advertisementId === 0) {
+        setSubmitError("Please select an advertisement");
+        return;
+      }
+
       // Remove empty fields
       if (!submitData.dueDate) delete submitData.dueDate;
       if (!submitData.description) delete submitData.description;
 
-      const result = await PaymentService.createPayment(submitData);
+      console.log("Submitting payment data:", submitData);
+
+      const result = await PaymentService.createPayment(
+        submitData,
+        credentials
+      );
 
       // Redirect to the created payment detail page
       router.push(`/payments/${result.id}`);
@@ -483,6 +536,13 @@ export default function CreatePaymentPage() {
           </ul>
         </div>
       </div>
+
+      {/* Credentials Modal */}
+      <CredentialsModal
+        isOpen={credentialsModal.isOpen}
+        onClose={() => setCredentialsModal({ isOpen: false, onSuccess: null })}
+        onSuccess={credentialsModal.onSuccess}
+      />
     </div>
   );
 }

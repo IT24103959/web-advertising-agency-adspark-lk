@@ -5,7 +5,7 @@ import {
   formatPercentage,
   getTrendColor,
   getTrendDirection,
-} from "../../services/analyticsService";
+} from "../services/analyticsService";
 
 // Metrics Card Component
 export function MetricsCard({
@@ -25,7 +25,7 @@ export function MetricsCard({
           {icon}
         </div>
         <div className="ml-4 flex-1">
-          <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+          <h3 className="text-sm font-medium text-black">{title}</h3>
           <div className="flex items-baseline">
             <p className="text-2xl font-semibold text-gray-900">{value}</p>
             {change !== null && change !== undefined && (
@@ -66,7 +66,7 @@ export function LineChart({ data, title, color = "blue" }) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-        <div className="flex items-center justify-center h-64 text-gray-500">
+        <div className="flex items-center justify-center h-64 text-black">
           No data available
         </div>
       </div>
@@ -167,7 +167,7 @@ export function LineChart({ data, title, color = "blue" }) {
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mt-4 flex items-center justify-between text-sm text-black">
         <span>Min: {formatNumber(minValue)}</span>
         <span>Max: {formatNumber(maxValue)}</span>
       </div>
@@ -195,7 +195,7 @@ export function PerformanceIndicator({ ctr, title }) {
       <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Click-Through Rate</span>
+          <span className="text-sm text-black">Click-Through Rate</span>
           <span className="text-lg font-semibold text-gray-900">
             {formatPercentage(ctr)}
           </span>
@@ -214,7 +214,7 @@ export function PerformanceIndicator({ ctr, title }) {
           >
             {indicator.label}
           </span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-black">
             {ctr >= 3.0
               ? "Outstanding performance!"
               : ctr >= 2.0
@@ -240,7 +240,7 @@ export function TopPerformingAds({
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-black">
           No performance data available yet
         </div>
       </div>
@@ -274,7 +274,7 @@ export function TopPerformingAds({
                 <p className="text-sm font-medium text-gray-900">
                   {ad.title || `Ad #${ad.id}`}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-black">
                   {formatNumber(ad.impressions || 0)} impressions •{" "}
                   {formatNumber(ad.clicks || 0)} clicks
                 </p>
@@ -284,7 +284,7 @@ export function TopPerformingAds({
               <p className="text-sm font-semibold text-gray-900">
                 {formatPercentage(ad.ctr || 0)}
               </p>
-              <p className="text-xs text-gray-500">CTR</p>
+              <p className="text-xs text-black">CTR</p>
             </div>
           </div>
         ))}
@@ -299,7 +299,7 @@ export function RecentEvents({ events, title = "Recent Activity" }) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-        <div className="text-center py-8 text-gray-500">No recent activity</div>
+        <div className="text-center py-8 text-black">No recent activity</div>
       </div>
     );
   }
@@ -366,12 +366,12 @@ export function RecentEvents({ events, title = "Recent Activity" }) {
                 <span className="font-medium">{event.eventType}</span> on Ad #
                 {event.advertisementId}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-black truncate">
                 {event.deviceType} • {event.browserType} •{" "}
                 {event.locationCountry}
               </p>
             </div>
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-black">
               {event.timestamp
                 ? new Date(event.timestamp).toLocaleTimeString()
                 : "Recently"}

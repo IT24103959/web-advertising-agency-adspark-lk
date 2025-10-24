@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+import {
+  useCredentials,
+  CredentialsModal,
+} from "../../context/CredentialsContext";
 import AdvertisementService from "../../services/advertisementService";
 import AnalyticsService from "../../services/analyticsService";
 
 export default function AdvertisementsPage() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
+  const { getStoredCredentials, requestCredentials } = useCredentials();
   const router = useRouter();
   const [advertisements, setAdvertisements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +35,18 @@ export default function AdvertisementsPage() {
     try {
       setLoading(true);
       setError("");
-      const data = await AdvertisementService.getClientAdvertisementSummaries();
+
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        requestCredentials(() => {
+          loadAdvertisements();
+        });
+        return;
+      }
+
+      const data = await AdvertisementService.getClientAdvertisementSummaries(
+        credentials
+      );
       setAdvertisements(data);
     } catch (err) {
       setError(err.message || "Failed to load advertisements");
@@ -131,7 +147,7 @@ export default function AdvertisementsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading your advertisements...</p>
+            <p className="mt-4 text-black">Loading your advertisements...</p>
           </div>
         </div>
       </div>
@@ -145,15 +161,15 @@ export default function AdvertisementsPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-black">
                 My Advertisements
               </h1>
-              <p className="mt-1 text-gray-600">
+              <p className="mt-1 text-black">
                 View and manage your advertising campaigns
               </p>
             </div>
             <div className="mt-4 sm:mt-0">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-black">
                 Total: {advertisements.length} campaigns
               </div>
             </div>
@@ -180,7 +196,7 @@ export default function AdvertisementsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Search
               </label>
               <input
@@ -194,7 +210,7 @@ export default function AdvertisementsPage() {
 
             {/* Status Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Status
               </label>
               <select
@@ -214,7 +230,7 @@ export default function AdvertisementsPage() {
 
             {/* Sort By */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Sort By
               </label>
               <select
@@ -233,7 +249,7 @@ export default function AdvertisementsPage() {
 
             {/* Sort Order */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Order
               </label>
               <select
@@ -252,16 +268,16 @@ export default function AdvertisementsPage() {
         {filteredAndSortedAdvertisements.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <div className="text-6xl mb-4">📢</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-black mb-2">
               No advertisements found
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-black mb-4">
               {advertisements.length === 0
                 ? "You don't have any advertisements yet."
                 : "No advertisements match your current filters."}
             </p>
             {advertisements.length === 0 && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-black">
                 Contact our team to create your first advertising campaign.
               </p>
             )}
@@ -296,31 +312,29 @@ export default function AdvertisementsPage() {
                             {AdvertisementService.getFormatIcon(ad.format)}
                           </span>
                           <div>
-                            <h3 className="font-semibold text-gray-900 line-clamp-1">
+                            <h3 className="font-semibold text-black line-clamp-1">
                               {ad.title}
                             </h3>
-                            <p className="text-sm text-gray-600">{ad.format}</p>
+                            <p className="text-sm text-black">{ad.format}</p>
                           </div>
                         </div>
                         {getStatusBadge(ad.status)}
                       </div>
 
-                      <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                      <p className="text-black text-sm line-clamp-2 mb-4">
                         {ad.description}
                       </p>
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">Budget</span>
+                          <span className="text-sm text-black">Budget</span>
                           <span className="font-semibold text-green-600">
                             {AdvertisementService.formatCurrency(ad.budget)}
                           </span>
                         </div>
 
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">
-                            Priority
-                          </span>
+                          <span className="text-sm text-black">Priority</span>
                           {getPriorityBadge(
                             ad.priorityLevel,
                             ad.priorityLevelDisplay
@@ -328,9 +342,7 @@ export default function AdvertisementsPage() {
                         </div>
 
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">
-                            Duration
-                          </span>
+                          <span className="text-sm text-black">Duration</span>
                           <span className="text-sm font-medium">
                             {ad.durationDays} days
                           </span>
@@ -341,7 +353,7 @@ export default function AdvertisementsPage() {
                     {/* Progress Bar */}
                     <div className="px-6 pb-4">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-black">
                           Campaign Progress
                         </span>
                         <span className="text-sm font-medium">
@@ -355,7 +367,7 @@ export default function AdvertisementsPage() {
                         ></div>
                       </div>
                       <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-black">
                           {AdvertisementService.formatDate(ad.startDate)} -{" "}
                           {AdvertisementService.formatDate(ad.endDate)}
                         </span>
@@ -379,29 +391,29 @@ export default function AdvertisementsPage() {
                     <div className="border-t border-gray-200 px-6 py-4">
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                          <div className="text-lg font-semibold text-gray-900">
+                          <div className="text-lg font-semibold text-black">
                             {ad.totalViews.toLocaleString()}
                           </div>
-                          <div className="text-xs text-gray-500">Views</div>
+                          <div className="text-xs text-black">Views</div>
                         </div>
                         <div>
-                          <div className="text-lg font-semibold text-gray-900">
+                          <div className="text-lg font-semibold text-black">
                             {ad.totalClicks.toLocaleString()}
                           </div>
-                          <div className="text-xs text-gray-500">Clicks</div>
+                          <div className="text-xs text-black">Clicks</div>
                         </div>
                         <div>
-                          <div className="text-lg font-semibold text-gray-900">
+                          <div className="text-lg font-semibold text-black">
                             {ad.totalAssets}
                           </div>
-                          <div className="text-xs text-gray-500">Assets</div>
+                          <div className="text-xs text-black">Assets</div>
                         </div>
                       </div>
                     </div>
 
                     {/* Footer */}
                     <div className="border-t border-gray-200 px-6 py-3 bg-gray-50 rounded-b-lg">
-                      <div className="flex justify-between items-center text-xs text-gray-500">
+                      <div className="flex justify-between items-center text-xs text-black">
                         <span>
                           Created{" "}
                           {AdvertisementService.formatDate(ad.createdAt)}
@@ -416,6 +428,9 @@ export default function AdvertisementsPage() {
           </div>
         )}
       </div>
+
+      {/* Credentials Modal */}
+      <CredentialsModal />
     </div>
   );
 }

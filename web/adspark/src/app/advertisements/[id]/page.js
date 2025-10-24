@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthContext } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import AdvertisementService from "../../../services/advertisementService";
 import AnalyticsService from "../../../services/analyticsService";
 
 export default function AdvertisementDetailPage({ params }) {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const router = useRouter();
   const [advertisement, setAdvertisement] = useState(null);
   const [loading, setLoading] = useState(true);

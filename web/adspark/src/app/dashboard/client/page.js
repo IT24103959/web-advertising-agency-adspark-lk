@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  useCredentials,
+  CredentialsModal,
+} from "../../../context/CredentialsContext";
 import AnalyticsService, {
   formatNumber,
   formatPercentage,
@@ -12,9 +16,11 @@ import { MetricsCard } from "../../../components/AnalyticsComponents";
 
 export default function ClientDashboard() {
   const { user, isLoggedIn, loading, logout } = useAuth();
+  const { getStoredCredentials, requestCredentials } = useCredentials();
   const router = useRouter();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [credentialsRequested, setCredentialsRequested] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -40,12 +46,27 @@ export default function ClientDashboard() {
     if (isLoggedIn && user?.client) {
       fetchAnalyticsData();
     }
-  }, [isLoggedIn, user]);
+  }, [isLoggedIn, user?.client]); // Remove fetchAnalyticsData from dependencies
 
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     setAnalyticsLoading(true);
     try {
-      const result = await AnalyticsService.getDashboardSummary();
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        // Request credentials if not available and not already requested
+        setAnalyticsLoading(false); // Reset loading state
+        if (!credentialsRequested) {
+          setCredentialsRequested(true);
+          requestCredentials(() => {
+            // Reset the flag and retry fetching analytics after credentials are provided
+            setCredentialsRequested(false);
+            fetchAnalyticsData();
+          });
+        }
+        return;
+      }
+
+      const result = await AnalyticsService.getDashboardSummary(credentials);
       if (result.success) {
         setAnalyticsData(result.data.overview);
       }
@@ -54,7 +75,7 @@ export default function ClientDashboard() {
     } finally {
       setAnalyticsLoading(false);
     }
-  };
+  }, [getStoredCredentials, requestCredentials, credentialsRequested]); // Add dependencies for useCallback
 
   const handleLogout = () => {
     logout();
@@ -66,7 +87,7 @@ export default function ClientDashboard() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-black">Loading...</p>
         </div>
       </div>
     );
@@ -89,7 +110,7 @@ export default function ClientDashboard() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-black">
                 Welcome, {user.firstName}
               </span>
               <button
@@ -205,7 +226,7 @@ export default function ClientDashboard() {
             ) : (
               <div className="bg-white rounded-lg shadow p-6 text-center">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-black"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -220,7 +241,7 @@ export default function ClientDashboard() {
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
                   No analytics data yet
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-black">
                   Start creating advertisements to see your performance metrics.
                 </p>
               </div>
@@ -233,7 +254,7 @@ export default function ClientDashboard() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Welcome back, {user.firstName} {user.lastName}!
               </h2>
-              <p className="text-gray-600">
+              <p className="text-black">
                 AdSpark Client Dashboard - Manage your advertising campaigns and
                 view performance
               </p>
@@ -245,10 +266,10 @@ export default function ClientDashboard() {
             {/* Company Card */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <h3 className="text-lg text-black font-medium mb-4">
                   Company Information
                 </h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-black text-sm">
                   <div>
                     <strong>Company:</strong> {user.companyName}
                   </div>
@@ -281,7 +302,7 @@ export default function ClientDashboard() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Contact Information
                 </h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-black text-sm">
                   <div>
                     <strong>Email:</strong> {user.email}
                   </div>
@@ -307,7 +328,7 @@ export default function ClientDashboard() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Account Details
                 </h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-black text-sm">
                   <div>
                     <strong>Client ID:</strong> {user.id}
                   </div>
@@ -334,7 +355,7 @@ export default function ClientDashboard() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Company Address
                 </h3>
-                <p className="text-gray-600">{user.companyAddress}</p>
+                <p className="text-black">{user.companyAddress}</p>
               </div>
             </div>
           )}
@@ -350,7 +371,7 @@ export default function ClientDashboard() {
                   <div className="font-medium text-gray-900">
                     Create Campaign
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Start a new advertising campaign
                   </div>
                 </button>
@@ -362,7 +383,7 @@ export default function ClientDashboard() {
                   <div className="font-medium text-gray-900">
                     View Analytics
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Check campaign performance
                   </div>
                 </Link>
@@ -371,16 +392,14 @@ export default function ClientDashboard() {
                   <div className="font-medium text-gray-900">
                     Billing & Payments
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Manage payments and invoices
                   </div>
                 </button>
 
                 <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                   <div className="font-medium text-gray-900">Support</div>
-                  <div className="text-sm text-gray-600">
-                    Get help and support
-                  </div>
+                  <div className="text-sm text-black">Get help and support</div>
                 </button>
 
                 <Link
@@ -390,7 +409,7 @@ export default function ClientDashboard() {
                   <div className="font-medium text-gray-900">
                     My Advertisements
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     View all your advertising campaigns
                   </div>
                 </Link>
@@ -400,7 +419,7 @@ export default function ClientDashboard() {
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
                 >
                   <div className="font-medium text-gray-900">My Payments</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     View and process your payments
                   </div>
                 </Link>
@@ -410,7 +429,7 @@ export default function ClientDashboard() {
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
                 >
                   <div className="font-medium text-gray-900">Asset Library</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Browse marketing assets and templates
                   </div>
                 </Link>
@@ -420,7 +439,7 @@ export default function ClientDashboard() {
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
                 >
                   <div className="font-medium text-gray-900">Featured Ads</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Browse all public advertisements
                   </div>
                 </Link>
@@ -429,14 +448,14 @@ export default function ClientDashboard() {
                   <div className="font-medium text-gray-900">
                     Account Settings
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Update profile and preferences
                   </div>
                 </button>
 
                 <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
                   <div className="font-medium text-gray-900">Reports</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-black">
                     Download detailed reports
                   </div>
                 </button>
@@ -450,7 +469,7 @@ export default function ClientDashboard() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Recent Activity
               </h3>
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-black">
                 <p>No recent activity to display.</p>
                 <p className="text-sm mt-2">
                   Start by creating your first advertising campaign!
@@ -460,6 +479,9 @@ export default function ClientDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Credentials Modal */}
+      <CredentialsModal />
     </div>
   );
 }

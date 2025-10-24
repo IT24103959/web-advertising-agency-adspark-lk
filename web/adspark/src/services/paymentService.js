@@ -1,23 +1,31 @@
 // Payment Service for handling API operations
-import { CredentialsContext } from "../context/CredentialsContext";
 
 const API_BASE_URL = "http://localhost:8080/api";
+// Proxy URL for development (to avoid CORS issues)
+const API_PROXY_BASE = "/api";
+
+// Helper function to create Basic Auth headers
+const createAuthHeaders = (credentials) => {
+  if (!credentials) {
+    throw new Error("Authentication required");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization:
+      "Basic " + btoa(`${credentials.username}:${credentials.password}`),
+  };
+};
 
 class PaymentService {
   /**
    * Create a new payment (FINANCE_TEAM only)
    * @param {Object} paymentData - Payment data
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Object>} Created payment
    */
-  static async createPayment(paymentData) {
-    const credentials = await CredentialsContext.getCredentials();
-
-    if (!credentials) {
-      throw new Error("Authentication required");
-    }
-
-    const authHeader =
-      "Basic " + btoa(`${credentials.username}:${credentials.password}`);
+  static async createPayment(paymentData, credentials) {
+    const headers = createAuthHeaders(credentials);
 
     // Validate required fields
     const requiredFields = [
@@ -27,7 +35,11 @@ class PaymentService {
       "clientUserId",
     ];
     for (const field of requiredFields) {
-      if (!paymentData[field]) {
+      if (
+        paymentData[field] === null ||
+        paymentData[field] === undefined ||
+        paymentData[field] === ""
+      ) {
         throw new Error(`${field} is required`);
       }
     }
@@ -43,19 +55,15 @@ class PaymentService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/payments`, {
+      const response = await fetch(`${API_PROXY_BASE}/payments`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authHeader,
-        },
+        headers,
         body: JSON.stringify(paymentData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 403) {
           throw new Error(
@@ -80,11 +88,10 @@ class PaymentService {
    * Process payment (CLIENT users only)
    * @param {number} paymentId - Payment ID
    * @param {Object} paymentData - Payment processing data
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Object>} Payment processing result
    */
-  static async processPayment(paymentId, paymentData) {
-    const credentials = await CredentialsContext.getCredentials();
-
+  static async processPayment(paymentId, paymentData, credentials) {
     if (!credentials) {
       throw new Error("Authentication required");
     }
@@ -117,7 +124,6 @@ class PaymentService {
       if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 403) {
           throw new Error(
@@ -143,11 +149,10 @@ class PaymentService {
   /**
    * Get payment status by ID
    * @param {number} paymentId - Payment ID
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Object>} Payment status details
    */
-  static async getPaymentStatus(paymentId) {
-    const credentials = await CredentialsContext.getCredentials();
-
+  static async getPaymentStatus(paymentId, credentials) {
     if (!credentials) {
       throw new Error("Authentication required");
     }
@@ -168,7 +173,6 @@ class PaymentService {
 
       if (!response.ok) {
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 404) {
           throw new Error("Payment not found");
@@ -193,11 +197,10 @@ class PaymentService {
 
   /**
    * Get payment summaries (role-based: clients see their own, finance team sees all)
+   * @param {Object} credentials - User credentials
    * @returns {Promise<Array>} Array of payment summaries
    */
-  static async getPaymentSummaries() {
-    const credentials = await CredentialsContext.getCredentials();
-
+  static async getPaymentSummaries(credentials) {
     if (!credentials) {
       throw new Error("Authentication required");
     }
@@ -206,7 +209,8 @@ class PaymentService {
       "Basic " + btoa(`${credentials.username}:${credentials.password}`);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/payments/summary`, {
+      // Use proxy route to avoid CORS issues in development
+      const response = await fetch(`${API_PROXY_BASE}/payments/summary`, {
         method: "GET",
         headers: {
           Authorization: authHeader,
@@ -215,7 +219,6 @@ class PaymentService {
 
       if (!response.ok) {
         if (response.status === 401) {
-          CredentialsContext.clearCredentials();
           throw new Error("Authentication failed. Please log in again.");
         }
         throw new Error(
@@ -293,10 +296,10 @@ class PaymentService {
       PROCESSING: "text-blue-700 bg-blue-100",
       COMPLETED: "text-green-700 bg-green-100",
       FAILED: "text-red-700 bg-red-100",
-      CANCELLED: "text-gray-700 bg-gray-100",
+      CANCELLED: "text-black bg-gray-100",
       REFUNDED: "text-purple-700 bg-purple-100",
     };
-    return statusColors[status] || "text-gray-500 bg-gray-100";
+    return statusColors[status] || "text-black bg-gray-100";
   }
 
   /**
@@ -504,7 +507,7 @@ class PaymentService {
       medium: "text-yellow-700 bg-yellow-100",
       low: "text-green-700 bg-green-100",
     };
-    return urgencyColors[urgency] || "text-gray-500 bg-gray-100";
+    return urgencyColors[urgency] || "text-black bg-gray-100";
   }
 }
 

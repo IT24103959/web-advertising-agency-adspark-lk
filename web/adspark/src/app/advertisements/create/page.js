@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthContext } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
+import {
+  useCredentials,
+  CredentialsModal,
+} from "../../../context/CredentialsContext";
 import AdvertisementService from "../../../services/advertisementService";
 
 export default function CreateAdvertisementPage() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
+  const { getStoredCredentials, requestCredentials } = useCredentials();
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: "",
@@ -98,6 +103,16 @@ export default function CreateAdvertisementPage() {
       setLoading(true);
       setSubmitError("");
 
+      // Check for credentials
+      const credentials = getStoredCredentials();
+      if (!credentials) {
+        setLoading(false);
+        requestCredentials(() => {
+          handleSubmit(e);
+        });
+        return;
+      }
+
       // Prepare data for submission
       const submitData = {
         ...formData,
@@ -109,10 +124,13 @@ export default function CreateAdvertisementPage() {
         durationDays: Number(formData.durationDays),
       };
 
-      const result = await AdvertisementService.createAdvertisement(submitData);
+      const result = await AdvertisementService.createAdvertisement(
+        submitData,
+        credentials
+      );
 
-      // Redirect to the created advertisement detail page
-      router.push(`/advertisements/${result.id}`);
+      // Redirect to the advertisements listing page
+      router.push("/advertisements");
     } catch (err) {
       setSubmitError(err.message || "Failed to create advertisement");
       console.error("Error creating advertisement:", err);
@@ -506,6 +524,9 @@ export default function CreateAdvertisementPage() {
           </form>
         </div>
       </div>
+
+      {/* Credentials Modal */}
+      <CredentialsModal />
     </div>
   );
 }
