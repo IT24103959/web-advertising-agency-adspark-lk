@@ -44,6 +44,7 @@ public class AdvertisementSummaryResponse {
     // User information
     private String createdByUsername;
     private String assignedToUsername;
+    private Long clientId;
 
     // Performance metrics (from analytics)
     private Long totalClicks = 0L;

@@ -3,6 +3,7 @@ package com.service.adspark.controller;
 import com.service.adspark.dto.request.usermanagement.*;
 import com.service.adspark.dto.response.usermanagement.*;
 import com.service.adspark.service.UserService;
+import com.service.adspark.model.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -100,6 +102,28 @@ public class UserController {
             }
         } catch (Exception e) {
             log.error("Unexpected error getting user details", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred");
+        }
+    }
+
+    @GetMapping("/financial-team")
+    @Operation(summary = "Get Financial Team Members", description = "Get all financial team members data (requires authentication)")
+    public ResponseEntity<?> getFinancialTeamMembers(Authentication authentication) {
+        try {
+            if (authentication == null || authentication.getName() == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Authentication required");
+            }
+
+            String username = authentication.getName();
+            log.info("Received request to get financial team members by user: {}", username);
+
+            List<UserResponse> financialTeamMembers = userService.getFinancialTeamMembers();
+            return ResponseEntity.ok(financialTeamMembers);
+
+        } catch (Exception e) {
+            log.error("Unexpected error getting financial team members", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An unexpected error occurred");
         }

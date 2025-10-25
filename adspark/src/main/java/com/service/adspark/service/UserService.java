@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -257,6 +258,20 @@ public class UserService {
         return externalUser.map(user -> (User) user);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        log.debug("Finding user by email: {}", email);
+
+        // Check internal users first
+        Optional<InternalUser> internalUser = internalUserRepository.findByEmail(email);
+        if (internalUser.isPresent()) {
+            return Optional.of(internalUser.get());
+        }
+
+        // Check external users
+        Optional<ExternalUser> externalUser = externalUserRepository.findByEmail(email);
+        return externalUser.map(user -> (User) user);
+    }
 
     /**
      * Find user by ID
@@ -274,5 +289,24 @@ public class UserService {
         // Check external users
         Optional<ExternalUser> externalUser = externalUserRepository.findById(id);
         return externalUser.map(user -> (User) user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse> getUsersByRole(UserRole role) {
+        log.info("Finding users by role: {}", role);
+
+        List<InternalUser> internalUsers = internalUserRepository.findByRole(role);
+        return internalUsers.stream()
+                .map(this::mapToUserResponse)
+                .toList();
+    }
+
+    /**
+     * Get all financial team members
+     */
+    @Transactional(readOnly = true)
+    public List<UserResponse> getFinancialTeamMembers() {
+        log.info("Fetching all financial team members");
+        return getUsersByRole(UserRole.FINANCE_TEAM);
     }
 }

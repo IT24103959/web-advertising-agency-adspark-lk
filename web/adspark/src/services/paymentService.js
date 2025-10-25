@@ -54,6 +54,7 @@ class PaymentService {
       throw new Error("Invoice number must be in format INV-YYYY-XXX");
     }
 
+    console.log("Creating payment with data:", paymentData);
     try {
       const response = await fetch(`${API_PROXY_BASE}/payments`, {
         method: "POST",
@@ -110,7 +111,7 @@ class PaymentService {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/payments/${paymentId}/pay`,
+        `${API_PROXY_BASE}/payments/${paymentId}/pay`,
         {
           method: "PUT",
           headers: {
@@ -162,7 +163,7 @@ class PaymentService {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/payments/${paymentId}/status`,
+        `${API_PROXY_BASE}/payments/${paymentId}/status`,
         {
           method: "GET",
           headers: {

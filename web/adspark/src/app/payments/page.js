@@ -42,7 +42,10 @@ export default function PaymentsPage() {
       setLoading(true);
       setError("");
 
-      const credentials = getStoredCredentials();
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
       if (!credentials) {
         // For logged-in clients without credentials, show helpful message instead of modal
         if (user.client && !user.internalUser) {

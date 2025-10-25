@@ -52,8 +52,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (data.success && data.user) {
-        setUser(data.user);
-        localStorage.setItem("adspark_user", JSON.stringify(data.user));
+        setUser({ ...data.user, password: password });
+        localStorage.setItem(
+          "adspark_user",
+          JSON.stringify({ ...data.user, password: password })
+        );
         return { success: true, user: data.user };
       } else {
         throw new Error(data.message || "Login failed");

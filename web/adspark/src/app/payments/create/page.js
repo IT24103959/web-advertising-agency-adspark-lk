@@ -54,7 +54,10 @@ export default function CreatePaymentPage() {
       setLoadingData(true);
 
       // Check for credentials
-      const credentials = getStoredCredentials();
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
       if (!credentials) {
         setLoadingData(false);
         setCredentialsModal({
@@ -168,7 +171,10 @@ export default function CreatePaymentPage() {
     e.preventDefault();
 
     // Check for credentials
-    const credentials = getStoredCredentials();
+    const credentials = {
+      username: user.username,
+      password: user.password,
+    };
     if (!credentials) {
       setCredentialsModal({
         isOpen: true,
@@ -195,6 +201,13 @@ export default function CreatePaymentPage() {
         advertisementId: Number(formData.advertisementId),
         clientUserId: Number(formData.clientUserId),
       };
+
+      // Convert dueDate to the required format (YYYY-MM-DDTHH:mm:ss)
+      if (formData.dueDate) {
+        submitData.dueDate = `${formData.dueDate}T00:00:00`;
+      }
+
+      console.log("clients: ", clients);
 
       // Validate that required numeric fields are valid
       if (!submitData.clientUserId || submitData.clientUserId === 0) {

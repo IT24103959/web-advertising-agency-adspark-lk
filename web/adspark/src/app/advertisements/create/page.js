@@ -28,10 +28,13 @@ export default function CreateAdvertisementPage() {
     notes: "",
     priorityLevel: 2, // Medium priority by default
     estimatedHours: "",
+    assignedToUserId: "", // Financial officer assignment
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [financialOfficers, setFinancialOfficers] = useState([]);
+  const [loadingOfficers, setLoadingOfficers] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -48,7 +51,52 @@ export default function CreateAdvertisementPage() {
       router.push("/dashboard/client");
       return;
     }
+
+    // Fetch financial officers
+    fetchFinancialOfficers();
   }, [user, router]);
+
+  const fetchFinancialOfficers = async () => {
+    setLoadingOfficers(true);
+    try {
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
+      if (!credentials) {
+        console.error("No credentials available");
+        return;
+      }
+
+      const authString = btoa(
+        `${credentials.username}:${credentials.password}`
+      );
+
+      const response = await fetch("/api/users/financial-team", {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${authString}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch financial officers: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      setFinancialOfficers(data);
+    } catch (error) {
+      console.error("Error fetching financial officers:", error);
+      setSubmitError(
+        "Failed to load financial officers. Please refresh the page."
+      );
+    } finally {
+      setLoadingOfficers(false);
+    }
+  };
 
   useEffect(() => {
     // Auto-calculate duration when dates change
@@ -101,7 +149,10 @@ export default function CreateAdvertisementPage() {
       setSubmitError("");
 
       // Check for credentials
-      const credentials = getStoredCredentials();
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
       if (!credentials) {
         setLoading(false);
         // For logged-in users without credentials, show helpful error
@@ -126,6 +177,9 @@ export default function CreateAdvertisementPage() {
           ? Number(formData.estimatedHours)
           : null,
         durationDays: Number(formData.durationDays),
+        assignedToUserId: formData.assignedToUserId
+          ? Number(formData.assignedToUserId)
+          : null,
       };
 
       const result = await AdvertisementService.createAdvertisement(
@@ -134,7 +188,7 @@ export default function CreateAdvertisementPage() {
       );
 
       // Redirect to the advertisements listing page
-      router.push("/advertisements");
+      router.push("/");
     } catch (err) {
       setSubmitError(err.message || "Failed to create advertisement");
       console.error("Error creating advertisement:", err);
@@ -314,6 +368,38 @@ export default function CreateAdvertisementPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Estimated work hours"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assign Financial Officer
+                  </label>
+                  {loadingOfficers ? (
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
+                      Loading financial officers...
+                    </div>
+                  ) : (
+                    <select
+                      name="assignedToUserId"
+                      value={formData.assignedToUserId}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">
+                        Select a financial officer (optional)
+                      </option>
+                      {financialOfficers.map((officer) => (
+                        <option key={officer.id} value={officer.id}>
+                          {officer.firstName} {officer.lastName} (
+                          {officer.employeeId})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="mt-1 text-sm text-gray-500">
+                    Choose a financial officer to handle billing and payments
+                    for this campaign
+                  </p>
                 </div>
               </div>
             </div>

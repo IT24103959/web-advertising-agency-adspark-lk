@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
-import { useCredentials } from "../../context/CredentialsContext";
 import { AssetService, ASSET_TYPES } from "../../services/assetService";
 import {
   LoadingSpinner,
@@ -16,7 +15,6 @@ import {
 
 export default function AssetBrowsePage() {
   const { user, isLoggedIn, loading: authLoading, logout } = useAuth();
-  const { getStoredCredentials } = useCredentials();
   const router = useRouter();
 
   const [assets, setAssets] = useState([]);
@@ -67,23 +65,11 @@ export default function AssetBrowsePage() {
     setError(null);
 
     try {
-      // Check if credentials are available without triggering modal
-      const credentials = getStoredCredentials();
-
-      if (!credentials) {
-        // For clients without credentials, show a helpful message
-        if (user.client && !user.internalUser) {
-          setError(
-            "Asset browsing requires additional permissions. Please contact your account manager for access to asset management features."
-          );
-        } else {
-          setError(
-            "Authentication required for asset management. Please contact support."
-          );
-        }
-        setLoading(false);
-        return;
-      }
+      // Use the logged-in user's credentials
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
 
       const searchParams = {
         ...filters,

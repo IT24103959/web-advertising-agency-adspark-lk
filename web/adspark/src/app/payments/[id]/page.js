@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
@@ -17,11 +17,12 @@ export default function PaymentDetailPage({ params }) {
   const [paymentForm, setPaymentForm] = useState({
     paymentMethod: "CREDIT_CARD",
     transactionId: "",
-    lastFourDigits: "",
     bankName: "",
   });
 
-  const paymentId = params.id;
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
+  const paymentId = resolvedParams.id;
 
   useEffect(() => {
     if (!user) {
@@ -43,11 +44,28 @@ export default function PaymentDetailPage({ params }) {
     }
   }, [user, router, paymentId]);
 
+  // Update transaction ID when payment is loaded
+  useEffect(() => {
+    if (payment && payment.transactionId) {
+      setPaymentForm((prev) => ({
+        ...prev,
+        transactionId: payment.transactionId,
+      }));
+    }
+  }, [payment]);
+
   const loadPayment = async () => {
+    const credentials = {
+      username: user.username,
+      password: user.password,
+    };
     try {
       setLoading(true);
       setError("");
-      const data = await PaymentService.getPaymentStatus(paymentId);
+      const data = await PaymentService.getPaymentStatus(
+        paymentId,
+        credentials
+      );
       setPayment(data);
     } catch (err) {
       setError(err.message || "Failed to load payment");
@@ -67,6 +85,10 @@ export default function PaymentDetailPage({ params }) {
 
   const handleProcessPayment = async (e) => {
     e.preventDefault();
+    const credentials = {
+      username: user.username,
+      password: user.password,
+    };
 
     try {
       setProcessing(true);
@@ -80,9 +102,15 @@ export default function PaymentDetailPage({ params }) {
         return;
       }
 
+      const paymentData = {
+        transactionId: paymentForm.transactionId || payment?.transactionId,
+        paymentMethod: paymentForm.paymentMethod,
+      };
+
       const result = await PaymentService.processPayment(
         paymentId,
-        paymentForm
+        paymentData,
+        credentials
       );
 
       // Refresh payment data
@@ -92,8 +120,7 @@ export default function PaymentDetailPage({ params }) {
       // Reset form
       setPaymentForm({
         paymentMethod: "CREDIT_CARD",
-        transactionId: "",
-        lastFourDigits: "",
+        transactionId: payment?.transactionId || "",
         bankName: "",
       });
     } catch (err) {
@@ -102,14 +129,6 @@ export default function PaymentDetailPage({ params }) {
     } finally {
       setProcessing(false);
     }
-  };
-
-  const generateTransactionId = () => {
-    const transactionId = PaymentService.generateTransactionId();
-    setPaymentForm((prev) => ({
-      ...prev,
-      transactionId,
-    }));
   };
 
   const isFinanceTeam = user?.role === "FINANCE_TEAM";
@@ -316,17 +335,6 @@ export default function PaymentDetailPage({ params }) {
                         {PaymentService.getPaymentMethodDisplay(
                           payment.paymentMethod
                         )}
-                      </p>
-                    </div>
-                  )}
-
-                  {payment.lastFourDigits && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500">
-                        Card Ending
-                      </label>
-                      <p className="mt-1 text-sm text-gray-900">
-                        ****{payment.lastFourDigits}
                       </p>
                     </div>
                   )}
@@ -569,44 +577,19 @@ export default function PaymentDetailPage({ params }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Transaction ID
                   </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      name="transactionId"
-                      value={paymentForm.transactionId}
-                      onChange={handlePaymentFormChange}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter transaction ID"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={generateTransactionId}
-                      className="px-3 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm"
-                    >
-                      Generate
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    name="transactionId"
+                    value={paymentForm.transactionId}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+                    placeholder="Transaction ID from payment"
+                    readOnly
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    This transaction ID is from the payment record and cannot be
+                    changed.
+                  </p>
                 </div>
-
-                {(paymentForm.paymentMethod === "CREDIT_CARD" ||
-                  paymentForm.paymentMethod === "DEBIT_CARD") && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Four Digits
-                    </label>
-                    <input
-                      type="text"
-                      name="lastFourDigits"
-                      value={paymentForm.lastFourDigits}
-                      onChange={handlePaymentFormChange}
-                      maxLength="4"
-                      pattern="\d{4}"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="1234"
-                    />
-                  </div>
-                )}
 
                 {paymentForm.paymentMethod === "BANK_TRANSFER" && (
                   <div>

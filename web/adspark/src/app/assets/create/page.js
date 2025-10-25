@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
-import { useCredentials } from "../../../context/CredentialsContext";
 import {
   AssetService,
   ASSET_TYPES,
@@ -23,7 +22,6 @@ import {
 
 export default function CreateAssetPage() {
   const { user, isLoggedIn, loading: authLoading, logout } = useAuth();
-  const { requestCredentials } = useCredentials();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -124,7 +122,11 @@ export default function CreateAssetPage() {
     setSuccessMessage("");
 
     try {
-      const credentials = await requestCredentials("create_asset");
+      // For logged-in users, use their stored credentials from AuthContext
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
 
       const result = await AssetService.createAsset(
         formData,

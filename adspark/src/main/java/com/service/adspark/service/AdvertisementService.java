@@ -357,6 +357,19 @@ public class AdvertisementService {
             summary.setAssignedToUsername(ad.getAssignedTo().getUsername());
         }
 
+        // Set clientId using clientEmail from advertisement
+        if (ad.getClientEmail() != null && !ad.getClientEmail().isEmpty()) {
+            try {
+                Optional<User> clientUser = userService.findByEmail(ad.getClientEmail());
+                if (clientUser.isPresent()) {
+                    summary.setClientId(clientUser.get().getId());
+                }
+            } catch (Exception e) {
+                log.warn("Could not find client user with email {} for advertisement {}: {}",
+                        ad.getClientEmail(), ad.getId(), e.getMessage());
+            }
+        }
+
         // Status indicators
         summary.setIsActive(ad.isActive());
         summary.setIsScheduled(ad.isScheduled());

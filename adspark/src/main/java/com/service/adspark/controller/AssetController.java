@@ -18,8 +18,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Optional;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.net.MalformedURLException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -168,9 +175,53 @@ public class AssetController {
         }
     }
 
-    @GetMapping("/health")
-    @Operation(summary = "Health Check", description = "Check if the asset service is running")
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Asset service is running");
+    @GetMapping("/images/{filename:.+}")
+    @Operation(summary = "Serve Image File", description = "Serve image files from the uploads/assets/image folder (Public endpoint)")
+    public ResponseEntity<Resource> serveImageFile(@PathVariable String filename) {
+        try {
+            // Build the path to the image file
+            Path filePath = Paths.get("uploads/assets/image").resolve(filename).normalize();
+
+            // Check if file exists and is readable
+            if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
+                log.warn("Image file not found or not readable: {}", filename);
+                return ResponseEntity.notFound().build();
+            }
+
+            // Create resource from file path
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("Resource not accessible: {}", filename);
+                return ResponseEntity.notFound().build();
+            }
+
+            // Determine content type
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            // Validate that it's an image file
+            if (!contentType.startsWith("image/")) {
+                log.warn("Requested file is not an image: {} (content-type: {})", filename, contentType);
+                return ResponseEntity.badRequest().build();
+            }
+
+            log.info("Serving image file: {} with content-type: {}", filename, contentType);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .body(resource);
+
+        } catch (MalformedURLException e) {
+            log.error("Malformed URL for file: {}", filename, e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error serving image file: {}", filename, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
 }

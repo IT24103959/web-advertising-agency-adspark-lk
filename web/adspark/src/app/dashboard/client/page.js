@@ -361,14 +361,17 @@ export default function ClientDashboard() {
                 Quick Actions
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <Link
+                  href="/advert-details"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
                   <div className="font-medium text-gray-900">
-                    Create Campaign
+                    Create Advertisement
                   </div>
                   <div className="text-sm text-black">
-                    Start a new advertising campaign
+                    Start a new advertisement
                   </div>
-                </button>
+                </Link>
 
                 <Link
                   href="/analytics"
@@ -378,14 +381,17 @@ export default function ClientDashboard() {
                     View Analytics
                   </div>
                   <div className="text-sm text-black">
-                    Check campaign performance
+                    Check advertisement performance
                   </div>
                 </Link>
 
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+                <Link
+                  href="/support"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
+                >
                   <div className="font-medium text-gray-900">Support</div>
                   <div className="text-sm text-black">Get help and support</div>
-                </button>
+                </Link>
 
                 <Link
                   href="/advertisements"
@@ -440,13 +446,6 @@ export default function ClientDashboard() {
                   </div>
                   <div className="text-sm text-black">
                     Update profile and preferences
-                  </div>
-                </button>
-
-                <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                  <div className="font-medium text-gray-900">Reports</div>
-                  <div className="text-sm text-black">
-                    Download detailed reports
                   </div>
                 </button>
               </div>

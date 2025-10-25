@@ -31,6 +31,7 @@ const getAuthHeaders = (user) => {
 // Asset API service class
 export class AssetService {
   static async createAsset(assetData, file, credentials) {
+    console.log("Creating asset with credentials:", credentials);
     if (!credentials || !credentials.username || !credentials.password) {
       throw new Error("Basic Auth credentials required");
     }
@@ -117,7 +118,7 @@ export class AssetService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/assets/${assetId}`, {
+      const response = await fetch(`${API_PROXY_BASE}/assets/${assetId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +150,7 @@ export class AssetService {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/assets/${assetId}/download`,
+        `${API_PROXY_BASE}/assets/${assetId}?download=true`,
         {
           method: "GET",
           headers: {
@@ -174,9 +175,44 @@ export class AssetService {
 
   // Helper method to get asset file URL
   static getAssetFileUrl(fileUrl) {
-    if (fileUrl && fileUrl.startsWith("/api/")) {
+    if (!fileUrl) return null;
+
+    // If it's already a proper HTTP URL, return as is
+    if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) {
+      return fileUrl;
+    }
+
+    // If it's a relative API path, use backend URL
+    if (fileUrl.startsWith("/api/")) {
       return `${API_BASE_URL.replace("/api", "")}${fileUrl}`;
     }
+
+    // Handle absolute local file paths - convert to Spring Boot public endpoint
+    if (fileUrl.includes("uploads/assets/")) {
+      // Extract the filename from the path
+      const filename = fileUrl.split("/").pop(); // Get the last part of the path
+
+      // Determine the asset type from the path
+      if (fileUrl.includes("uploads/assets/image/")) {
+        console.log("URL:", `${API_BASE_URL}/assets/images/${filename}`);
+        return `${API_BASE_URL}/assets/images/${filename}`;
+      }
+      // Add more asset types as needed
+      // if (fileUrl.includes("uploads/assets/video/")) {
+      //   return `${API_BASE_URL}/assets/videos/${filename}`;
+      // }
+
+      // Default fallback for other asset types
+      return `${API_BASE_URL}/assets/images/${filename}`;
+    }
+
+    // If it starts with /uploads/, extract filename and use public endpoint
+    if (fileUrl.startsWith("/uploads/")) {
+      const filename = fileUrl.split("/").pop();
+      return `${API_BASE_URL}/assets/images/${filename}`;
+    }
+
+    // Default fallback - try to use as relative URL
     return fileUrl;
   }
 

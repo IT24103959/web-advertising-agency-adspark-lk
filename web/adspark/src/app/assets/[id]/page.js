@@ -4,13 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
-import { useCredentials } from "../../../context/CredentialsContext";
 import { AssetService } from "../../../services/assetService";
 import { LoadingSpinner, ErrorMessage, Button } from "../../../components/ui";
 
 export default function AssetDetailPage() {
   const { user, isLoggedIn, loading: authLoading, logout } = useAuth();
-  const { requestCredentials } = useCredentials();
   const router = useRouter();
   const params = useParams();
   const assetId = params.id;
@@ -39,6 +37,7 @@ export default function AssetDetailPage() {
   // Load asset details
   useEffect(() => {
     if (isLoggedIn && user && assetId) {
+      console.log("Loading asset with ID:", assetId);
       loadAsset();
     }
   }, [isLoggedIn, user, assetId]);
@@ -50,7 +49,11 @@ export default function AssetDetailPage() {
     setError(null);
 
     try {
-      const credentials = await requestCredentials("get_asset");
+      // Use the logged-in user's credentials
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
       const assetData = await AssetService.getAsset(assetId, credentials);
       setAsset(assetData);
     } catch (error) {
@@ -66,7 +69,11 @@ export default function AssetDetailPage() {
 
     setDownloading(true);
     try {
-      const credentials = await requestCredentials("download_asset");
+      // Use the logged-in user's credentials
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
       const blob = await AssetService.downloadAsset(asset.id, credentials);
 
       // Create download link

@@ -21,7 +21,7 @@ public class FileStorageUtil {
     @Value("${file.upload.dir:./uploads}")
     private String uploadDir;
 
-    @Value("${file.upload.max-size:5242880}") // 5MB default
+    @Value("${file.upload.max-size:52428800}") // 50MB default
     private long maxFileSize;
 
     public String saveFile(MultipartFile file, String subDirectory) throws IOException {
@@ -30,6 +30,7 @@ public class FileStorageUtil {
         }
 
         if (file.getSize() > maxFileSize) {
+            System.out.println("FILE SIZE: " + file.getSize());
             throw new IllegalArgumentException("File size exceeds maximum limit: " + formatFileSize(maxFileSize));
         }
 
@@ -170,9 +171,8 @@ public class FileStorageUtil {
     }
 
     public String getPublicUrl(String relativePath) {
-        return "/api/assets/files/" + relativePath;
+        return "C:/Users/ishan/Documents/private/SE_Project/adspark/uploads/" + relativePath;
     }
-
     public Path getAbsolutePath(String relativePath) {
         return Paths.get(uploadDir, relativePath);
     }
