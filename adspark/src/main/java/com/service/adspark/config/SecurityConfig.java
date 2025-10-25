@@ -44,6 +44,9 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/api/adverts/public")
                         .permitAll()
+                        // Public advertisement details endpoint
+                        .requestMatchers("/api/adverts/public/**")
+                        .permitAll()
                         // Asset images can be served publicly
                         .requestMatchers("/api/assets/images/**")
                         .permitAll()

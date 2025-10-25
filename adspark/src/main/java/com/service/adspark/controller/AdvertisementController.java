@@ -3,6 +3,9 @@ package com.service.adspark.controller;
 import com.service.adspark.dto.response.advertisementmanagement.AdvertisementResponse;
 import com.service.adspark.dto.response.advertisementmanagement.AdvertisementSummaryResponse;
 import com.service.adspark.dto.request.advertisementmanagement.CreateAdvertisementRequest;
+import com.service.adspark.dto.response.usermanagement.UserResponse;
+import com.service.adspark.model.enums.UserRole;
+import com.service.adspark.service.UserService;
 import com.service.adspark.service.AdvertisementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -24,6 +28,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 public class AdvertisementController {
 
     private final AdvertisementService advertService;
+    private final UserService userService;
 
     /**
      * Create a new advert
@@ -148,5 +153,111 @@ public class AdvertisementController {
                     .body("An unexpected error occurred while getting public advertisements");
         }
     }
+
+
+    @GetMapping("/pending-approval")
+    public ResponseEntity<?> getPendingApprovalAdverts(Authentication authentication) {
+        try {
+            if (authentication == null || authentication.getName() == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Authentication required");
+            }
+
+            String username = authentication.getName();
+
+            // Check if user exists and is a MARKETING_MANAGER
+            Optional<UserResponse> userOpt = userService.getUserByUsername(username);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not found");
+            }
+
+            UserResponse user = userOpt.get();
+            if (user.getRole() != UserRole.MARKETING_MANAGER) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Only Marketing Managers can view pending approval advertisements");
+            }
+
+            log.info("Request to get pending approval advertisements by marketing manager: {}", username);
+
+            List<AdvertisementResponse> pendingAdverts = advertService.getPendingApprovalAdverts(username);
+            return ResponseEntity.ok(pendingAdverts);
+
+        } catch (RuntimeException e) {
+            log.error("Error getting pending approval advertisements: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error getting pending approval advertisements", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred while getting pending approval advertisements");
+        }
+    }
+
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<?> approveAdvertisement(@PathVariable Long id, Authentication authentication) {
+        try {
+            if (authentication == null || authentication.getName() == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Authentication required");
+            }
+
+            String username = authentication.getName();
+
+            // Check if user exists and is a MARKETING_MANAGER
+            Optional<UserResponse> userOpt = userService.getUserByUsername(username);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not found");
+            }
+
+            UserResponse user = userOpt.get();
+            if (user.getRole() != UserRole.MARKETING_MANAGER) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Only Marketing Managers can approve advertisements");
+            }
+
+            log.info("Request to approve advertisement {} by marketing manager: {}", id, username);
+
+            AdvertisementResponse approvedAdvert = advertService.approveAdvertisement(id, username);
+            return ResponseEntity.ok(approvedAdvert);
+
+        } catch (RuntimeException e) {
+            log.error("Error approving advertisement: {}", e.getMessage());
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error approving advertisement", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred while approving the advertisement");
+        }
+    }
+
+    @GetMapping("/public/{id}")
+    public ResponseEntity<?> getPublicAdvertisement(@PathVariable Long id) {
+        try {
+            log.info("Request to get public advertisement details for ID: {}", id);
+
+            AdvertisementResponse advertisement = advertService.getAdvertByIdPublic(id);
+            return ResponseEntity.ok(advertisement);
+
+        } catch (RuntimeException e) {
+            log.error("Error getting public advertisement: {}", e.getMessage());
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            } else if (e.getMessage().contains("not available for public viewing")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: " + e.getMessage());
+            } else {
+                return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error getting public advertisement", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred while retrieving the advertisement");
+        }
+    }
+
 
 }

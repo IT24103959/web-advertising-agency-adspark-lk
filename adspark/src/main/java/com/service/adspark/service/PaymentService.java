@@ -123,6 +123,13 @@ public class PaymentService {
 
             if (paymentSuccess) {
                 payment.setStatus(PaymentStatus.COMPLETED);
+                Advertisement advertisement = payment.getAdvertisement();
+                if (advertisement != null) {
+                    advertisement.setStatus(com.service.adspark.model.enums.AdStatus.PENDING_APPROVAL);
+                    advertRepository.save(advertisement);
+                    log.info("Advertisement {} status updated to PENDING_APPROVAL after successful payment",
+                            advertisement.getId());
+                }
                 log.info("Payment processed successfully: {}", payment.getPaymentReference());
             } else {
                 payment.setStatus(PaymentStatus.FAILED);

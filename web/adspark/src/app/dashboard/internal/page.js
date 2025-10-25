@@ -52,7 +52,10 @@ export default function InternalDashboard() {
   const fetchAnalyticsData = async () => {
     setAnalyticsLoading(true);
     try {
-      const credentials = getStoredCredentials();
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
       const result = await AnalyticsService.getDashboardSummary(credentials);
       if (result.success) {
         setAnalyticsData(result.data.overview);
@@ -423,21 +426,12 @@ export default function InternalDashboard() {
                 {user.role === "MARKETING_MANAGER" && (
                   <>
                     <Link
-                      href="/analytics"
-                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
-                    >
-                      <div className="font-medium text-gray-900">Analytics</div>
-                      <div className="text-sm text-gray-600">
-                        View performance reports
-                      </div>
-                    </Link>
-                    <Link
-                      href="/advertisements"
+                      href="/approve-advertisements"
                       className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
                     >
                       <div className="font-medium text-gray-900">Campaigns</div>
                       <div className="text-sm text-gray-600">
-                        Manage ad campaigns
+                        Approve Advertisements
                       </div>
                     </Link>
                   </>
@@ -528,34 +522,6 @@ export default function InternalDashboard() {
                         Technical support
                       </div>
                     </button>
-                  </>
-                )}
-
-                {/* Asset Library and Advertisement access for non-GRAPHIC_DESIGNER internal users */}
-                {user.role !== "GRAPHIC_DESIGNER" && (
-                  <>
-                    <Link
-                      href="/assets"
-                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
-                    >
-                      <div className="font-medium text-gray-900">
-                        Asset Library
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Browse design assets and templates
-                      </div>
-                    </Link>
-                    <Link
-                      href="/advertisements"
-                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left block"
-                    >
-                      <div className="font-medium text-gray-900">
-                        Advertisements
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        View advertising campaigns
-                      </div>
-                    </Link>
                   </>
                 )}
               </div>

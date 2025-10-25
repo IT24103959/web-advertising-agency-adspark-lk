@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AdvertisementService from "../../services/advertisementService";
 import AnalyticsService from "../../services/analyticsService";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function PublicAdvertisementsPage() {
+  const router = useRouter();
   const [advertisements, setAdvertisements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,8 +42,13 @@ export default function PublicAdvertisementsPage() {
           timestamp: new Date().toISOString(),
         },
       });
+
+      // Navigate to advertisement details page
+      router.push(`/advertisement/view-details/${advertisement.id}`);
     } catch (error) {
       console.warn("Failed to track click event:", error);
+      // Still navigate even if tracking fails
+      router.push(`/advertisement/view-details/${advertisement.id}`);
     }
   };
 
@@ -281,15 +288,6 @@ export default function PublicAdvertisementsPage() {
                       }}
                     >
                       View Details
-                    </button>
-                    <button
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Could add to favorites or share functionality
-                      }}
-                    >
-                      ❤️
                     </button>
                   </div>
                 </div>

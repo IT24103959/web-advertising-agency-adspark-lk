@@ -56,7 +56,10 @@ export default function AnalyticsPage() {
     setAnalyticsError(null);
 
     try {
-      const credentials = getStoredCredentials();
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
 
       if (!credentials) {
         // For logged-in users without credentials, show helpful message

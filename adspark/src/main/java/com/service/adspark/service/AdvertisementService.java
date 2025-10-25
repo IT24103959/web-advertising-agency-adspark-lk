@@ -431,4 +431,112 @@ public class AdvertisementService {
 
         return summary;
     }
+
+    @Transactional(readOnly = true)
+    public List<AdvertisementResponse> getPendingApprovalAdverts(String requestingUsername) {
+        log.info("Getting pending approval advertisements with payments by user: {}", requestingUsername);
+
+        // Get the requesting user
+        User requestingUser = getUserByUsername(requestingUsername);
+
+        // Validate that the user is a Marketing Manager
+        if (requestingUser.getRole() != UserRole.MARKETING_MANAGER) {
+            throw new RuntimeException("Only Marketing Managers can view pending approval advertisements");
+        }
+
+        // Get advertisements with PENDING_APPROVAL status
+        List<Advertisement> pendingAdverts = advertRepository.findByStatus(AdStatus.PENDING_APPROVAL);
+
+        // Filter advertisements that have at least one completed payment
+        List<Advertisement> paidPendingAdverts = pendingAdverts.stream()
+                .filter(ad -> ad.getPayments() != null &&
+                        ad.getPayments().stream()
+                                .anyMatch(payment -> payment.getStatus() == PaymentStatus.COMPLETED))
+                .collect(Collectors.toList());
+
+        log.info("Found {} pending approval advertisements with completed payments", paidPendingAdverts.size());
+
+        return paidPendingAdverts.stream()
+                .map(this::mapToAdvertResponse)
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public AdvertisementResponse approveAdvertisement(Long advertisementId, String approverUsername) {
+        log.info("Approving advertisement with ID: {} by user: {}", advertisementId, approverUsername);
+
+        // Get the approver user
+        User approverUser = getUserByUsername(approverUsername);
+
+        // Validate that the user is a Marketing Manager
+        if (approverUser.getRole() != UserRole.MARKETING_MANAGER) {
+            throw new RuntimeException("Only Marketing Managers can approve advertisements");
+        }
+
+        // Get the advertisement
+        Advertisement advertisement = advertRepository.findById(advertisementId)
+                .orElseThrow(() -> new RuntimeException("Advertisement not found with ID: " + advertisementId));
+
+        // Validate that the advertisement is in PENDING_APPROVAL status
+        if (advertisement.getStatus() != AdStatus.PENDING_APPROVAL) {
+            throw new RuntimeException("Advertisement must be in PENDING_APPROVAL status to be approved. Current status: " + advertisement.getStatus());
+        }
+
+        // Validate that the advertisement has at least one completed payment
+        boolean hasPaidPayment = advertisement.getPayments() != null &&
+                advertisement.getPayments().stream()
+                        .anyMatch(payment -> payment.getStatus() == PaymentStatus.COMPLETED);
+
+        if (!hasPaidPayment) {
+            throw new RuntimeException("Advertisement cannot be approved without completed payment");
+        }
+
+        // Update the status to APPROVED
+        advertisement.setStatus(AdStatus.APPROVED);
+        Advertisement savedAdvertisement = advertRepository.save(advertisement);
+
+        log.info("Advertisement {} approved successfully by {}", advertisementId, approverUsername);
+
+        return mapToAdvertResponse(savedAdvertisement);
+    }
+
+    @Transactional(readOnly = true)
+    public AdvertisementResponse getAdvertByIdPublic(Long id) {
+        log.info("Fetching public advert with ID: {}", id);
+
+        Advertisement advert = advertRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Advert not found with ID: " + id));
+
+        // Only return advertisements that are in public-viewable states
+        if (advert.getStatus() != AdStatus.ACTIVE &&
+                advert.getStatus() != AdStatus.APPROVED &&
+                advert.getStatus() != AdStatus.COMPLETED) {
+            throw new RuntimeException("Advertisement not available for public viewing");
+        }
+
+        // Return sanitized version with only safe public information
+        return sanitizeAdvertisementResponse(mapToAdvertResponse(advert));
+    }
+
+    private AdvertisementResponse sanitizeAdvertisementResponse(AdvertisementResponse response) {
+        // Create a copy and remove sensitive fields
+        AdvertisementResponse sanitized = new AdvertisementResponse();
+
+        // Keep safe public information
+        sanitized.setId(response.getId());
+        sanitized.setTitle(response.getTitle());
+        sanitized.setDescription(response.getDescription());
+        sanitized.setFormat(response.getFormat());
+        sanitized.setStatus(response.getStatus());
+        sanitized.setTargetAudience(response.getTargetAudience());
+        sanitized.setCampaignObjectives(response.getCampaignObjectives());
+        sanitized.setStartDate(response.getStartDate());
+        sanitized.setEndDate(response.getEndDate());
+        sanitized.setDurationDays(response.getDurationDays());
+        sanitized.setTags(response.getTags());
+        sanitized.setCreatedAt(response.getCreatedAt());
+        sanitized.setUpdatedAt(response.getUpdatedAt());
+        return sanitized;
+    }
+
+
 }

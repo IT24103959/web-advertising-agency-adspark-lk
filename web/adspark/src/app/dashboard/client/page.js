@@ -41,7 +41,10 @@ export default function ClientDashboard() {
     setAnalyticsLoading(true);
     try {
       // For clients, we'll try to get analytics but handle gracefully if credentials aren't available
-      const credentials = getStoredCredentials();
+      const credentials = {
+        username: user.username,
+        password: user.password,
+      };
 
       if (!credentials) {
         // For logged-in clients, we can skip analytics if no credentials are provided
@@ -448,21 +451,6 @@ export default function ClientDashboard() {
                     Update profile and preferences
                   </div>
                 </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Activity Placeholder */}
-          <div className="mt-6 bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Recent Activity
-              </h3>
-              <div className="text-center py-8 text-black">
-                <p>No recent activity to display.</p>
-                <p className="text-sm mt-2">
-                  Start by creating your first advertising campaign!
-                </p>
               </div>
             </div>
           </div>
